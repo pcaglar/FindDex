@@ -1,0 +1,173 @@
+[
+  {
+    "id": "mv-001",
+    "username": "elenarose",
+    "displayName": "Elena Rose",
+    "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80",
+    "platform": "instagram",
+    "profileUrl": "https://instagram.com/elenarose",
+    "websiteUrl": "https://elenarose.portfolio.me",
+    "tags": [
+      "Fashion",
+      "Avrupa",
+      "Brunette",
+      "Photography"
+    ],
+    "bio": "Living between Milan & Paris. Haute couture, editorial shoots & timeless elegance.",
+    "notes": "Paris Moda Haftası 2024 çekimleri için iletişime geçilecek. Menajerlik adresi web sitesinde mevcut.",
+    "isFavorite": true,
+    "isVerified": true,
+    "collections": [
+      "Favoriler",
+      "Moda Kampanyası"
+    ],
+    "createdAt": "2024-03-10T14:20:00Z",
+    "updatedAt": "2024-03-15T10:30:00Z"
+  },
+  {
+    "id": "mv-002",
+    "username": "selinayildiz",
+    "displayName": "Selina Yıldız",
+    "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+    "platform": "instagram",
+    "profileUrl": "https://instagram.com/selinayildiz",
+    "websiteUrl": "https://selinayildiz.com",
+    "tags": [
+      "Fashion",
+      "Türkiye",
+      "Brunette",
+      "Travel"
+    ],
+    "bio": "İstanbul merkezli dijital içerik üreticisi ve stil danışmanı. Güneşli günlerin aşığı.",
+    "notes": "Karaköy ve Alaçatı yaz koleksiyonları için favori profil. İşbirlikleri açık.",
+    "isFavorite": true,
+    "isVerified": true,
+    "collections": [
+      "Favoriler",
+      "Sonra Bak"
+    ],
+    "createdAt": "2024-03-12T09:15:00Z",
+    "updatedAt": "2024-03-16T18:40:00Z"
+  },
+  {
+    "id": "mv-003",
+    "username": "astrid_v",
+    "displayName": "Astrid Valkyrie",
+    "avatarUrl": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80",
+    "platform": "tiktok",
+    "profileUrl": "https://tiktok.com/@astrid_v",
+    "websiteUrl": "https://astridvalk.carrd.co",
+    "tags": [
+      "Cosplay",
+      "Gaming",
+      "Blonde",
+      "Avrupa"
+    ],
+    "bio": "Nordic cosplayer, fantasy armorer & streamer. Crafting dreams out of foam & steel.",
+    "notes": "Cyberpunk ve Witcher kostüm tasarımları inanılmaz detaylı. Twitch yayınları var.",
+    "isFavorite": false,
+    "isVerified": true,
+    "collections": [
+      "Sonra Bak",
+      "Cosplay Referans"
+    ],
+    "createdAt": "2024-03-14T11:00:00Z",
+    "updatedAt": "2024-03-14T11:00:00Z"
+  },
+  {
+    "id": "mv-004",
+    "username": "maya_fit",
+    "displayName": "Maya Brooks",
+    "avatarUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80",
+    "platform": "youtube",
+    "profileUrl": "https://youtube.com/@maya_fit",
+    "websiteUrl": "https://mayabrooksfitness.com",
+    "tags": [
+      "Fitness",
+      "Brunette",
+      "Travel"
+    ],
+    "bio": "Certified fitness trainer, wellness advocate & plant-based recipes creator.",
+    "notes": "30 günlük antrenman programları çok başarılı. Kendi markası olan spor giyim sitesi var.",
+    "isFavorite": true,
+    "isVerified": false,
+    "collections": [
+      "Favoriler"
+    ],
+    "createdAt": "2024-03-16T15:30:00Z",
+    "updatedAt": "2024-03-18T12:00:00Z"
+  },
+  {
+    "id": "mv-005",
+    "username": "zoe_inked",
+    "displayName": "Zoe Chen",
+    "avatarUrl": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80",
+    "platform": "twitter",
+    "profileUrl": "https://x.com/zoe_inked",
+    "websiteUrl": "https://zoetattooart.studio",
+    "tags": [
+      "Tattoo",
+      "Fashion",
+      "Brunette",
+      "Photography"
+    ],
+    "bio": "Minimalist fine-line tattoo artist & alternative fashion enthusiast. Berlin.",
+    "notes": "Berlin'de stüdyosu var. Randevu alımları web sitesi üzerinden her ayın ilk günü açılıyor.",
+    "isFavorite": false,
+    "isVerified": true,
+    "collections": [
+      "Sonra Bak"
+    ],
+    "createdAt": "2024-03-17T08:45:00Z",
+    "updatedAt": "2024-03-17T08:45:00Z"
+  },
+  {
+    "id": "mv-006",
+    "username": "chloe_lumiere",
+    "displayName": "Chloe Moreau",
+    "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80",
+    "platform": "instagram",
+    "profileUrl": "https://instagram.com/chloe_lumiere",
+    "websiteUrl": "https://chloemoreau.fr",
+    "tags": [
+      "Fashion",
+      "Blonde",
+      "Avrupa",
+      "Photography"
+    ],
+    "bio": "French Riviera vibes, vintage aesthetics & film photography archive.",
+    "notes": "Nice ve Cannes lokasyon çekimleri harika. Kodak portra tonları kullanıyor.",
+    "isFavorite": true,
+    "isVerified": true,
+    "collections": [
+      "Favoriler",
+      "Moda Kampanyası"
+    ],
+    "createdAt": "2024-03-18T13:20:00Z",
+    "updatedAt": "2024-03-19T09:10:00Z"
+  },
+  {
+    "id": "mv-008",
+    "username": "kai_nordic",
+    "displayName": "Kaija Lindqvist",
+    "avatarUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80",
+    "platform": "website",
+    "profileUrl": "https://kaijalindqvist.design",
+    "websiteUrl": "https://kaijalindqvist.design",
+    "tags": [
+      "Photography",
+      "Avrupa",
+      "Blonde",
+      "Travel"
+    ],
+    "bio": "Scandinavian visual artist & editorial muse based in Stockholm.",
+    "notes": "Kendi bağımsız web sitesinde düzenli portfolyo bülteni yayınlıyor.",
+    "isFavorite": true,
+    "isVerified": true,
+    "collections": [
+      "Favoriler"
+    ],
+    "createdAt": "2024-03-20T10:10:00Z",
+    "updatedAt": "2024-03-20T10:10:00Z"
+  }
+]

@@ -1,0 +1,134 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Profile {
+  id           String              @id @default(cuid())
+  username     String
+  displayName  String
+  avatarUrl    String
+  coverUrl     String?
+  bio          String?
+  notes        String?
+  isFavorite   Boolean             @default(false)
+  isVerified   Boolean             @default(false)
+  deletedAt    DateTime?           // Soft delete: null means active; a timestamp means trashed
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  platformLinks PlatformLink[]
+  tags          ProfileTag[]
+  collections   ProfileCollection[]
+  images        ProfileImage[]
+  activityLogs  ActivityLog[]
+
+  @@index([deletedAt])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  profileId String
+  action    String
+  detail    String
+  createdAt DateTime @default(now())
+
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, createdAt])
+}
+
+model ProfileImage {
+  id        String   @id @default(cuid())
+  profileId String
+  url       String
+  isCover   Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, sortOrder])
+}
+
+model Platform {
+  id        String         @id @default(cuid())
+  key       String         @unique // e.g. "instagram", "twitter", "tiktok", "youtube", "website", "onlyfans"
+  name      String         // e.g. "Instagram", "OnlyFans"
+  icon      String         // e.g. "instagram", "tiktok", "🔥", "💎", "⭐"
+  color     String         // e.g. "from-pink-500 via-rose-500 to-amber-500" or "#00aff0"
+  isCustom  Boolean        @default(false)
+  createdAt DateTime       @default(now())
+
+  links     PlatformLink[]
+}
+
+model PlatformLink {
+  id         String   @id @default(cuid())
+  profileId  String
+  platformId String
+  url        String
+  label      String?  // Optional label, e.g. "Backup Account", "VIP"
+  createdAt  DateTime @default(now())
+
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  platform   Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@index([platformId])
+}
+
+model Tag {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  color     String       @default("pink")
+  createdAt DateTime     @default(now())
+
+  profiles  ProfileTag[]
+}
+
+model ProfileTag {
+  profileId String
+  tagId     String
+
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, tagId])
+}
+
+model Collection {
+  id        String              @id @default(cuid())
+  name      String              @unique
+  createdAt DateTime            @default(now())
+
+  profiles  ProfileCollection[]
+}
+
+model ProfileCollection {
+  profileId    String
+  collectionId String
+
+  profile      Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, collectionId])
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  key        String    @unique
+  label      String
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+}

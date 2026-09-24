@@ -1,0 +1,92 @@
+{
+  "brand": { "name": "FindDex", "tagline": "Save. Organize. Explore." },
+  "common": {
+    "add": "Ekle", "back": "Geri", "cancel": "İptal", "close": "Kapat", "confirm": "Onayla",
+    "create": "Oluştur", "delete": "Sil", "download": "İndir", "edit": "Düzenle", "hide": "Gizle",
+    "loading": "Yükleniyor…", "none": "Yok", "open": "Aç", "remove": "Kaldır", "reset": "Sıfırla", "menu": "Menüyü Aç",
+    "restore": "Geri Yükle", "save": "Kaydet", "saving": "Kaydediliyor…", "scan": "Tara", "show": "Göster",
+    "unknown": "Bilinmiyor", "upload": "Yükle", "yes": "Evet", "no": "Hayır", "today": "Bugün"
+  },
+  "language": { "label": "Language / Dil", "english": "English", "turkish": "Türkçe", "description": "Arayüz dilini seçin. Değişiklikler anında uygulanır." },
+  "errors": { "generic": "Bir hata oluştu.", "connection": "Bağlantı hatası oluştu.", "load": "Veriler yüklenemedi.", "favoriteUpdate": "Favori durumu güncellenemedi.", "collectionUpdate": "Koleksiyon güncellenemedi." },
+  "home": { "loadingProfiles": "Profiller yükleniyor…", "noMatch": "Eşleşen Profil Bulunamadı", "noMatchDescription": "Arama kriterlerinize veya seçilen filtrelere uyan profil bulunamadı. Filtreleri temizleyebilir veya yeni bir profil ekleyebilirsiniz.", "clearFilters": "Filtreleri Temizle", "deletePlatformMessage": "{{name}} platformuna bağlı {{count}} profil linki var. Silerseniz bu linkler de kaldırılacak.", "deleteTagMessage": "{{name}} etiketi {{count}} profilde kullanılıyor. Etiket ve tüm ilişkileri silinsin mi?", "deleteCollectionMessage": "{{name}} koleksiyonu {{count}} profilde kullanılıyor. Profillerden kaldırılsın mı?", "moveTrashTitle": "Profili Çöp Kutusuna Taşı", "moveTrashMessage": "Bu profili çöp kutusuna taşımak istediğinizden emin misiniz? Dilediğiniz zaman çöp kutusundan geri yükleyebilirsiniz." },
+  "nav": { "home": "Ana sayfa", "settings": "Ayarlar", "statistics": "İstatistikler", "backToArchive": "Arşive dön" },
+  "sidebar": {
+    "all": "Tümü", "favorites": "Favoriler", "watchLater": "Sonra Bak", "trash": "Çöp Kutusu",
+    "collections": "KOLEKSİYONLAR", "tags": "ETİKETLER", "platforms": "PLATFORMLAR", "totalProfiles": "Toplam Profil",
+    "growArchive": "Arşivinizi büyütün, yeni profiller ekleyin!", "newTag": "Yeni Etiket", "newPlatform": "Yeni Özel Platform Ekle",
+    "sortAria": "{{section}} sıralaması", "sortAZ": "A-Z", "sortCount": "Sayı", "hide": "Sidebar'ı gizle", "show": "Sidebar'ı göster",
+    "editCollection": "Koleksiyonu Düzenle", "deleteCollection": "Koleksiyonu Sil", "editTag": "Etiketi Düzenle", "deleteTag": "Etiketi Sil",
+    "editPlatform": "Platformu Düzenle", "deletePlatform": "Platformu Sil", "custom": "özel", "tagPlaceholder": "Etiket adı…",
+    "noTags": "Henüz etiket yok", "greatCollection": "Harika bir koleksiyon oluşturuyorsunuz! ✨", "resize": "Sidebar genişliğini ayarla", "resizeHint": "Sidebar genişliğini sürükleyerek ayarlayın"
+  },
+  "topbar": { "search": "İsim, kullanıcı adı (@) veya etiket ara…", "newProfile": "Yeni Profil Ekle", "lightTheme": "Açık temaya geç", "darkTheme": "Koyu temaya geç" },
+  "filters": {
+    "all": "Tümü", "favorites": "Favoriler", "hasWebsite": "Site Var", "newest": "Eklenme: En Yeni", "profiles": "{{count}} profil",
+    "oldest": "Eklenme: En Eski", "nameAZ": "İsim: A-Z", "nameZA": "İsim: Z-A", "favoritesFirst": "Önce Favoriler",
+    "perPage": "Sayfa başına", "perPageAria": "Sayfa başına profil sayısı", "count": "Adet:", "grid": "Grid Görünümü", "list": "Liste Görünümü", "active": "Aktif Filtre:"
+  },
+  "pagination": { "range": "{{from}}-{{to}} / Toplam {{total}} profil", "previous": "Önceki", "next": "Sonraki", "aria": "Profil sayfaları", "page": "Sayfa {{page}}" },
+  "profile": {
+    "add": "Profil Ekle", "edit": "Profili Düzenle", "details": "Profil Detayları", "username": "Kullanıcı Adı", "displayName": "Görünen İsim",
+    "bio": "Bio", "notes": "Notlar", "links": "Bağlantılar", "tags": "Etiketler", "collections": "Koleksiyonlar", "activity": "Aktivite",
+    "verified": "Doğrulanmış", "favorite": "Favori", "addFavorite": "Favorilere Ekle", "removeFavorite": "Favorilerden Çıkar",
+    "addWatchLater": "Sonra Bak listesine ekle", "removeWatchLater": "Sonra Bak listesinden çıkar", "moveToTrash": "Çöp Kutusuna Taşı",
+    "noLinks": "Henüz bir bağlantı eklenmemiş.", "noNotes": "Henüz not eklenmedi. Düzenle butonuna basarak notlarınızı yazabilirsiniz.", "noActivity": "Henüz aktivite kaydı yok.",
+    "activityLoading": "Aktivite yükleniyor…", "addTag": "Etiket Ekle", "newTagPlaceholder": "Yeni etiket (örn: Fashion, Cosplay)…",
+    "removeTag": "Etiketi kaldır", "addCollection": "Koleksiyon Ekle", "collectionPlaceholder": "Koleksiyon adı…",
+    "removeCollection": "Koleksiyondan çıkarmak için tıkla", "added": "Eklenme: {{date}}", "lastUpdated": "Son Güncelleme: {{date}}", "saveProfile": "Profili Kaydet",
+    "savingProfile": "Kaydediliyor…", "created": "Profil oluşturuldu", "updated": "Profil güncellendi", "gallery": "{{name}} fotoğraf galerisi",
+    "previousPhoto": "Önceki fotoğraf", "nextPhoto": "Sonraki fotoğraf", "closeGallery": "Galeriyi kapat", "showPhoto": "{{number}}. fotoğrafı göster", "photoAlt": "{{name}} — {{number}}. fotoğraf",
+    "openGallery": "{{name}} galerisini tam ekran aç", "openDetails": "{{name}} detaylarını aç", "openPlatform": "{{platform}} Profilini Aç",
+    "more": "Daha fazla", "photoCount": "+{{count}} fotoğraf", "websiteAvailable": "Kişisel web sitesi mevcut", "editProfile": "Profili Düzenle", "copied": "Kopyalandı!", "openProfile": "Profili Aç", "possibleDuplicate": "Bu profil zaten kayıtlı olabilir:",
+    "inTrash": "Bu profil çöp kutusunda mevcut, geri yüklemek ister misiniz?", "continueAnyway": "Yine de devam edip kaydedebilirsiniz.",
+    "restoreThis": "Bu profili geri yükle", "checkingDuplicates": "Mükerrer kayıt kontrol ediliyor…", "closePanel": "Paneli Kapat", "copyLink": "Linki Kopyala", "notesPlaceholder": "Bu profil hakkında notlarınızı yazın…",
+    "modalSubtitle": "Birden fazla platform linki ve fotoğraf ekleyin", "duplicateHint": "Eşleşmeleri kontrol edip yine de kaydetmeye devam edebilirsiniz.", "searchingSimilar": "Benzer profiller aranıyor…", "trashDuplicate": "Bu profil çöp kutusunda mevcut.", "restoring": "Geri yükleniyor…", "usernameRequired": "Kullanıcı Adı (@)", "nameRequired": "Görünen İsim (Gerçek İsim)", "nameExample": "Örn: Elena Rose", "photo": "Profil Fotoğrafı", "fromUrl": "URL'den Ekle", "fromComputer": "Bilgisayardan Yükle", "preview": "Önizleme", "quickPortraits": "Hızlı hazır portreler:", "uploadingImage": "Görsel yükleniyor…", "dropImages": "Görselleri buraya sürükleyin veya dosya seçin", "imageTypes": "Birden fazla JPG, PNG veya WEBP (dosya başına maksimum 5 MB)", "reorderImages": "Sıralamak için görselleri sürükleyin; yıldızlı görsel kart kapağıdır.", "photoNumber": "Fotoğraf {{number}}", "makeCover": "Kapak yap", "cover": "Kapak", "deletePhoto": "Fotoğrafı sil", "platformLinks": "Platform Bağlantıları", "definePlatform": "Özel Platform Tanımla", "addLink": "Link Ekle", "customPlatform": "Özel", "removeLink": "Bağlantıyı kaldır", "quickAdd": "Hızlı ekle:", "bioQuote": "Bio / Alıntı (Tırnak içinde gösterilir)", "bioPlaceholder": "Kısa bir biyografi veya alıntı…", "tagInput": "Yeni etiket yazıp Enter'a basın…", "suggestions": "Öneriler:", "personalNotes": "Kişisel Notlar", "personalNotesPlaceholder": "Model hakkında çekim fikirleri, ajans notları vb…", "validationRequired": "Lütfen kullanıcı adı ve isim alanlarını doldurunuz.", "unsupportedImage": "Sadece JPG, PNG veya WEBP görselleri desteklenir.", "imageTooLarge": "Görsel boyutu en fazla 5 MB olabilir.", "uploadFailed": "Yükleme başarısız.", "uploadServerError": "Görsel sunucuya yüklenirken hata oluştu.", "saveFailed": "Profil kaydedilirken bir sorun oluştu.",
+    "optionalLabel": "Etiket (opsiyonel)", "activityCreated": "Profil oluşturuldu", "activityEdited": "Profil bilgileri düzenlendi", "activityFavorited": "Profil favorilere eklendi", "activityUnfavorited": "Profil favorilerden çıkarıldı", "activityRestored": "Profil çöp kutusundan geri yüklendi", "activityTagAdded": "Etiket eklendi: {{name}}", "activityTagRemoved": "Etiket kaldırıldı: {{name}}", "activityCollectionAdded": "Koleksiyona eklendi: {{name}}", "activityCollectionRemoved": "Koleksiyondan çıkarıldı: {{name}}", "activityNoteUpdated": "Not güncellendi — önce: {{before}}, sonra: {{after}}"
+  },
+  "trash": {
+    "title": "Çöp Kutusu", "description": "Silinen profiller burada saklanır. Ayarlar'da seçilen saklama süresi sonunda otomatik olarak kalıcı silinir.", "empty": "Çöp Kutusu Boş",
+    "restore": "Geri Yükle", "deleteForever": "Kalıcı Sil", "emptyTrash": "Çöp Kutusunu Boşalt", "daysRemaining": "{{count}} gün kaldı",
+    "confirmDeleteTitle": "Profili Kalıcı Sil", "confirmDelete": "Bu profil ve görselleri kalıcı olarak silinecek. Bu işlem geri alınamaz.", "emptyDescription": "Silinmiş herhangi bir profil bulunmuyor. Tüm profilleriniz ana arşivinizde güvende.", "backToArchive": "Arşive Dön", "confirmEmpty": "Evet, Boşalt", "areYouSure": "Emin misiniz?", "profileCount": "{{count}} profil", "deletedAt": "Silindi: {{date}}"
+  },
+  "apiAccess": { "title": "API Erişimi", "description": "Chrome eklentisi gibi dış istemciler için erişim anahtarları.", "newKey": "Yeni Anahtar Oluştur", "ready": "Yeni anahtar hazır", "copyHint": "Şimdi kopyalayın ve güvenli bir yerde saklayın.", "keyName": "Anahtar adı", "created": "Oluşturuldu: {{date}} · Son kullanım: {{lastUsed}}", "neverUsed": "Henüz kullanılmadı", "revoke": "İptal Et", "empty": "Henüz API anahtarı yok.", "revokeTitle": "API Anahtarını İptal Et", "revokeMessage": "{{name}} anahtarı artık kullanılamayacak.", "defaultLabel": "Chrome Eklentisi" },
+  "settings": {
+    "title": "Ayarlar", "subtitle": "FindDex davranışını ve verilerini yönetin.", "appearance": "Görünüm & Tercihler",
+    "appearanceDescription": "Tema, dil ve ana sayfanın başlangıç değerleri.", "theme": "Tema", "dark": "Koyu", "light": "Açık", "system": "Sistem",
+    "defaultView": "Varsayılan görünüm", "grid": "Grid", "list": "Liste", "perPage": "Sayfa başına", "defaultSort": "Varsayılan sıralama",
+    "sidebar": "Sidebar", "sidebarDescription": "Genişliği 260px ve görünümü açık duruma döndürür.", "resetSidebar": "Sidebar’ı Sıfırla", "sidebarReset": "Sıfırlandı",
+    "dataManagement": "Veri Yönetimi", "dataDescription": "Aktarım, otomatik yedekleme ve saklama ayarları.",
+    "export": "Dışa Aktar", "exportDescription": "JSON veya görsellerle birlikte ZIP", "import": "İçe Aktar", "importDescription": "Merge veya güvenli replace",
+    "autoBackup": "Otomatik yedekleme", "autoBackupDescription": "Her gece 03:00'te `/app/data/backups` içine JSON yedeği alır.",
+    "backupRetention": "Tutulacak yedek sayısı", "backupNow": "Şimdi yedekle", "existingBackups": "Mevcut yedekler · Son: {{date}}", "noBackups": "Henüz yedek yok.",
+    "trashRetention": "Çöp kutusu saklama süresi", "trashRetentionHint": "Otomatik temizlik bu süreyi kullanır.", "days": "{{count}} gün",
+    "storage": "Depolama kullanımı", "profiles": "Profiller", "images": "Görseller", "uploads": "Uploads", "database": "Veritabanı",
+    "maintenance": "Bakım / Temizlik", "maintenanceDescription": "Kullanılmayan kayıtları ve sahipsiz dosyaları güvenle bulun.", "migration": "Migrasyon",
+    "unused": "Kullanılmayan öğeler", "unusedDescription": "0 profilli etiket ve koleksiyonlar.", "orphanFiles": "Yetim dosyalar", "tag": "Etiket", "collection": "Koleksiyon",
+    "orphanDescription": "Hiçbir görsel kaydına bağlı olmayan uploads dosyaları.", "cleanDisk": "Diski Temizle", "technical": "Teknik bilgiler", "noneUnused": "Kullanılmayan öğe bulunmadı.", "noneOrphaned": "Yetim dosya bulunmadı.", "deleteSelected": "Seçilenleri sil ({{count}})", "deleteSelectedFiles": "Seçilen dosyaları sil ({{count}})",
+    "danger": "Tehlikeli Bölge", "dangerDescription": "Bu işlemler geri alınamaz. Önce dışa aktarım veya yedek almanız önerilir.",
+    "emptyTrash": "Çöp Kutusunu Tamamen Boşalt", "emptyTrashDescription": "Çöpteki {{count}} profil ve ilişkili görselleri kalıcı siler.",
+    "resetAll": "Tüm Veriyi Sıfırla", "resetAllDescription": "{{profiles}} profil, {{tags}} etiket ve {{collections}} koleksiyon kalıcı olarak silinir.",
+    "loadDemo": "Demo İçerikle Doldur", "loadDemoDescription": "Mevcut tüm veriyi siler ve yalnızca 7 orijinal demo profilini yükler.",
+    "typeToContinue": "Devam etmek için {{text}} yazın", "resetting": "Sıfırlanıyor…", "emptyTrashButton": "Çöpü Boşalt",
+    "deletedProfiles": "{{count}} profil kalıcı olarak silindi.", "allDataDeleted": "Tüm profil, etiket ve koleksiyon verileri kalıcı olarak silindi.",
+    "deleteOrphansTitle": "Yetim Dosyaları Sil", "deleteUnusedTitle": "Kullanılmayan Öğeleri Sil", "deleteFilesMessage": "{{count}} dosya diskten kalıcı olarak silinecek.", "deleteItemsMessage": "{{count}} kullanılmayan öğe kalıcı olarak silinecek.", "deletePermanently": "Kalıcı Olarak Sil",
+    "emptyTrashMessage": "Çöp kutusundaki {{count}} profil ve ilişkili görseller kalıcı olarak silinecek. Bu işlem geri alınamaz.", "emptyTrashConfirm": "Çöpü Kalıcı Sil",
+    "resetMessage": "Bu işlem {{profiles}} profil, {{tags}} etiket ve {{collections}} koleksiyonu kalıcı olarak silecek. Geri alınamaz.",
+    "demoMessage": "Bu işlem MEVCUT TÜM VERİLERİNİZİ (profiller, etiketler, koleksiyonlar, çöp kutusu) kalıcı olarak silecek ve yerine uygulamanın orijinal demo profillerini yükleyecek. Kendi eklediğiniz tüm veriler kaybolacak.", "cards": "{{count}} kart"
+  },
+  "stats": {
+    "title": "İstatistikler", "subtitle": "Arşivinizin kısa bir özeti.", "totalProfiles": "Toplam Profil", "favorites": "Favoriler",
+    "collections": "Koleksiyonlar", "trash": "Çöp Kutusu", "platformDistribution": "Platform Dağılımı", "topTags": "En Çok Kullanılan 10 Etiket",
+    "trend": "Son 30 Günde Eklenen Profiller", "thirtyDaysAgo": "30 gün önce", "today": "Bugün", "verifiedRate": "Doğrulanmış Profil Oranı",
+    "noData": "Henüz veri yok.", "loadError": "İstatistikler yüklenemedi.", "loading": "İstatistikler hazırlanıyor…", "archiveSummary": "FindDex arşivinizin güncel özeti", "profileCount": "{{count}} profil"
+  },
+  "edit": { "required": "Ad boş olamaz.", "renameFailed": "Öğe yeniden adlandırılamadı.", "renameCollection": "Koleksiyonu Yeniden Adlandır", "newCollectionName": "Yeni Koleksiyon Adı", "renameTag": "Etiketi Yeniden Adlandır", "newTagName": "Yeni Etiket Adı", "tagColor": "Etiket Rengi", "selectColor": "{{color}} rengini seç" },
+  "platformModal": { "edit": "Platformu Düzenle", "add": "Yeni Platform Ekle", "editDescription": "Platform adını, ikonunu ve rengini değiştirin", "addDescription": "Özel sosyal medya veya web platformu tanımlayın", "quickSuggestions": "Hızlı Öneriler", "name": "Platform Adı", "namePlaceholder": "Örn: OnlyFans, Patreon, Twitch…", "icon": "İkon veya Emoji", "iconHint": "Emoji girin veya alttan seçin", "color": "Marka Rengi (Buton Stili)", "preview": "Önizleme Butonu", "open": "{{name}} Aç", "save": "Platformu Kaydet", "adding": "Ekleniyor…", "required": "Lütfen bir platform adı girin.", "failed": "İşlem başarısız oldu.", "colors": { "sky": "Gökyüzü", "orange": "Turuncu", "emerald": "Zümrüt", "purple": "Mor", "pink": "Pembe", "gold": "Sarı Altın", "graphite": "Koyu Grafit", "red": "Kızıl" } },
+  "transfer": {
+    "exportTitle": "Veriyi Dışa Aktar", "importTitle": "Veriyi İçe Aktar", "json": "Yalnızca JSON", "zip": "JSON + yüklenen görseller (ZIP)",
+    "selectFile": "JSON veya ZIP dosyası seçin", "merge": "Mevcut verinin üzerine ekle", "replace": "Mevcut veriyi silip yenisiyle değiştir",
+    "replaceWarning": "Replace modu içe aktarmadan önce mevcut tüm veriyi kalıcı olarak siler.", "importing": "İçe aktarılıyor…", "exporting": "Dışa aktarılıyor…", "title": "İçe / Dışa Aktarma", "description": "Verilerinizi yedekleyin veya başka bir FindDex kurulumuna taşıyın.", "downloadJson": "JSON indir", "jsonDescription": "Tüm kayıtlar ve ilişkiler.", "downloadZip": "ZIP indir", "zipDescription": "JSON ve yüklenen tüm görseller.", "choose": "JSON veya ZIP seçin", "finddexFile": "FindDex dışa aktarım dosyası", "mergeDescription": "Aynı kullanıcı adı varsa profil güncellenir.", "replaceDescription": "Veritabanındaki tüm mevcut kayıtlar kaldırılır.", "chooseError": "Lütfen bir JSON veya ZIP dosyası seçin.", "importFailed": "İçe aktarma başarısız oldu.", "imported": "{{profiles}} profil ve {{uploads}} görsel içe aktarıldı.", "replaceTitle": "Tüm Mevcut Veriyi Değiştir", "replaceMessage": "Bu işlem mevcut profilleri, platformları, etiketleri ve koleksiyonları kalıcı olarak silip seçtiğiniz yedekle değiştirecek. Devam etmek istiyor musunuz?", "replaceConfirm": "Sil ve İçe Aktar"
+  }
+}

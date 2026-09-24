@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0a0e17;
+  --bg-card: #111827;
+  --bg-card-hover: #161f33;
+  --border-color: #1f293d;
+  --text-primary: #f8fafc;
+  --text-muted: #94a3b8;
+}
+
+html:not(.dark) {
+  --bg-primary: #f6f7fb;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --border-color: #d8dee9;
+  --text-primary: #0f172a;
+  --text-muted: #64748b;
+}
+
+html:not(.dark) [class~="bg-slate-50"] {
+  background-color: #f6f7fb;
+}
+
+/* Legacy components originally used literal dark palette utilities. These
+   scoped overrides make those surfaces readable in class-based light mode
+   without weakening dark mode or colored action buttons. */
+html:not(.dark) [class~="bg-[#0a0e17]"],
+html:not(.dark) [class~="bg-[#0a0e17]/85"],
+html:not(.dark) [class~="bg-[#0c111c]"],
+html:not(.dark) [class~="bg-[#0e1422]"],
+html:not(.dark) [class~="bg-[#111827]"],
+html:not(.dark) [class~="bg-[#111827]/50"],
+html:not(.dark) [class~="bg-[#111827]/40"] {
+  background-color: #ffffff;
+}
+
+html:not(.dark) [class~="bg-[#111827]"],
+html:not(.dark) [class~="bg-[#111827]/50"],
+html:not(.dark) [class~="bg-[#111827]/40"] {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+html:not(.dark) [class~="bg-[#151c2e]"],
+html:not(.dark) [class~="bg-slate-900"],
+html:not(.dark) [class~="bg-slate-900/80"],
+html:not(.dark) [class~="bg-slate-800"],
+html:not(.dark) [class~="bg-slate-800/80"],
+html:not(.dark) [class~="bg-slate-800/40"] {
+  background-color: #f1f5f9;
+}
+
+html:not(.dark) [class~="border-[#1f293d]"],
+html:not(.dark) [class~="border-slate-800"],
+html:not(.dark) [class~="border-slate-700"],
+html:not(.dark) [class~="border-slate-700/60"] {
+  border-color: #cbd5e1;
+}
+
+html:not(.dark) [class~="text-slate-200"] { color: #1e293b; }
+html:not(.dark) [class~="text-slate-300"] { color: #27364a; }
+html:not(.dark) [class~="text-slate-400"] { color: #3f4f63; }
+html:not(.dark) [class~="text-slate-500"] { color: #526176; }
+html:not(.dark) [class~="text-slate-600"] { color: #3f4f63; }
+html:not(.dark) [class~="text-white"]:not([class*="bg-gradient"]):not([class*="bg-pink"]):not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-black"]) {
+  color: #0f172a;
+}
+
+/* Light-theme tag badges: each foreground/background pair exceeds WCAG AA
+   for normal text while dark-theme Tailwind colors remain unchanged. */
+html:not(.dark) [class~="bg-pink-500/10"] { background:#fce7f3; color:#9d174d; border-color:#f9a8d4; }
+html:not(.dark) [class~="bg-emerald-500/10"] { background:#d1fae5; color:#065f46; border-color:#6ee7b7; }
+html:not(.dark) [class~="bg-purple-500/10"] { background:#f3e8ff; color:#6b21a8; border-color:#d8b4fe; }
+html:not(.dark) [class~="bg-rose-500/10"] { background:#ffe4e6; color:#9f1239; border-color:#fda4af; }
+html:not(.dark) [class~="bg-cyan-500/10"] { background:#cffafe; color:#155e75; border-color:#67e8f9; }
+html:not(.dark) [class~="bg-amber-500/10"] { background:#fef3c7; color:#78350f; border-color:#fcd34d; }
+html:not(.dark) [class~="bg-orange-800/15"],
+html:not(.dark) [class~="bg-orange-500/10"] { background:#ffedd5; color:#7c2d12; border-color:#fdba74; }
+html:not(.dark) [class~="bg-red-500/10"] { background:#fee2e2; color:#991b1b; border-color:#fca5a5; }
+html:not(.dark) [class~="bg-blue-500/10"] { background:#dbeafe; color:#1e40af; border-color:#93c5fd; }
+html:not(.dark) [class~="bg-indigo-500/10"] { background:#e0e7ff; color:#3730a3; border-color:#a5b4fc; }
+html:not(.dark) [class~="bg-violet-500/10"] { background:#ede9fe; color:#5b21b6; border-color:#c4b5fd; }
+html:not(.dark) [class~="bg-teal-500/10"] { background:#ccfbf1; color:#115e59; border-color:#5eead4; }
+html:not(.dark) [class~="bg-fuchsia-500/10"] { background:#fae8ff; color:#86198f; border-color:#e879f9; }
+html:not(.dark) [class~="bg-sky-500/10"] { background:#e0f2fe; color:#075985; border-color:#7dd3fc; }
+html:not(.dark) [class~="bg-yellow-500/10"] { background:#fef9c3; color:#713f12; border-color:#fde047; }
+html:not(.dark) [class~="bg-lime-500/10"] { background:#ecfccb; color:#3f6212; border-color:#bef264; }
+html:not(.dark) [class~="bg-slate-500/10"] { background:#e2e8f0; color:#334155; border-color:#94a3b8; }
+
+/* Selected navigation remains unambiguous on the light sidebar. */
+html:not(.dark) [class*="from-pink-500/15"] { background:#fce7f3; color:#9d174d; border-color:#f9a8d4; }
+html:not(.dark) [class*="from-rose-500/15"] { background:#ffe4e6; color:#9f1239; border-color:#fda4af; }
+html:not(.dark) [class*="from-amber-500/15"] { background:#fef3c7; color:#78350f; border-color:#fcd34d; }
+html:not(.dark) [class~="bg-purple-500/20"] { background:#f3e8ff; color:#6b21a8; border-color:#d8b4fe; }
+
+html:not(.dark) [class~="hover:bg-slate-800"]:hover,
+html:not(.dark) [class~="hover:bg-slate-800/60"]:hover,
+html:not(.dark) [class~="hover:bg-slate-800/40"]:hover,
+html:not(.dark) [class~="hover:bg-slate-700"]:hover,
+html:not(.dark) [class~="hover:bg-slate-700/80"]:hover {
+  background-color: #e2e8f0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Custom sleek scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+.sidebar-sublist {
+  max-height: 13.5rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.38) transparent;
+  mask-image: linear-gradient(to bottom, transparent 0, black 8px, black calc(100% - 8px), transparent 100%);
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FindDex</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+  <header><img src="icons/icon48.png" alt=""><div><h1>FindDex</h1><p data-i18n="subtitle">Save Instagram profile</p></div><button id="toggleSettings" class="icon" title="Settings" data-i18n-title="settings">⚙</button></header>
+  <section id="settings" class="panel hidden">
+    <label><span data-i18n="language">Language / Dil</span><select id="language"><option value="en">English</option><option value="tr">Türkçe</option></select></label>
+    <label><span data-i18n="serverUrl">FindDex address</span><input id="serverUrl" placeholder="http://localhost:12000"></label>
+    <label><span data-i18n="apiKey">API key</span><input id="apiKey" type="password" placeholder="fd_live_..."></label>
+    <button id="saveSettings" class="secondary" data-i18n="saveSettings">Save Settings</button>
+    <small data-i18n="keyHint">Create the key in FindDex → Settings → API Access.</small>
+  </section>
+  <div id="pageWarning" class="notice hidden"></div>
+  <form id="profileForm">
+    <label><span data-i18n="username">Username</span><input id="username" required></label>
+    <label><span data-i18n="displayName">Display name</span><input id="displayName" required></label>
+    <label>Bio<textarea id="bio" rows="3"></textarea></label>
+    <label><span data-i18n="avatarUrl">Profile photo URL</span><input id="avatarUrl" type="url"></label>
+    <section id="coverPicker" class="cover-picker">
+      <div class="cover-heading"><strong data-i18n="chooseCover">Choose Cover Photo</strong><span data-i18n="coverHint">Profile or post image</span></div>
+      <div id="coverLoading" class="cover-loading"><i></i><span data-i18n="loadingPosts">Loading posts…</span></div>
+      <div id="coverContent" class="hidden"><img id="coverPreview" class="cover-preview" alt="Selected cover photo" data-i18n-alt="selectedCover"><div id="coverGrid" class="cover-grid"></div></div>
+    </section>
+    <label><span data-i18n="tags">Tags</span><input id="tags" placeholder="Fashion, Instagram"></label>
+    <label><span data-i18n="notes">Notes</span><textarea id="notes" rows="2" placeholder="Optional" data-i18n-placeholder="optional"></textarea></label>
+    <label class="check"><input id="isVerified" type="checkbox"> <span data-i18n="verified">Verified profile</span></label>
+    <input id="profileUrl" type="hidden">
+    <button id="submit" type="submit" class="primary" data-i18n="saveToFindDex">Save to FindDex</button>
+  </form>
+  <div id="status" class="status hidden"></div>
+  <script src="popup.js"></script>
+</body></html>

@@ -1,0 +1,92 @@
+{
+  "brand": { "name": "FindDex", "tagline": "Save. Organize. Explore." },
+  "common": {
+    "add": "Add", "back": "Back", "cancel": "Cancel", "close": "Close", "confirm": "Confirm",
+    "create": "Create", "delete": "Delete", "download": "Download", "edit": "Edit", "hide": "Hide",
+    "loading": "Loading…", "none": "None", "open": "Open", "remove": "Remove", "reset": "Reset", "menu": "Open menu",
+    "restore": "Restore", "save": "Save", "saving": "Saving…", "scan": "Scan", "show": "Show",
+    "unknown": "Unknown", "upload": "Upload", "yes": "Yes", "no": "No", "today": "Today"
+  },
+  "language": { "label": "Language / Dil", "english": "English", "turkish": "Türkçe", "description": "Choose the interface language. Changes apply instantly." },
+  "errors": { "generic": "Something went wrong.", "connection": "A connection error occurred.", "load": "Could not load data.", "favoriteUpdate": "Could not update favorite status.", "collectionUpdate": "Could not update collection." },
+  "home": { "loadingProfiles": "Loading profiles…", "noMatch": "No Matching Profiles", "noMatchDescription": "No profiles match your search or selected filters. Clear the filters or add a new profile.", "clearFilters": "Clear Filters", "deletePlatformMessage": "{{name}} has {{count}} linked profile links. Deleting it will remove those links too.", "deleteTagMessage": "{{name}} is used by {{count}} profiles. Delete the tag and all its relations?", "deleteCollectionMessage": "{{name}} is used by {{count}} profiles. Remove it from those profiles?", "moveTrashTitle": "Move Profile to Trash", "moveTrashMessage": "Are you sure you want to move this profile to Trash? You can restore it from Trash at any time." },
+  "nav": { "home": "Home", "settings": "Settings", "statistics": "Statistics", "backToArchive": "Back to archive" },
+  "sidebar": {
+    "all": "All", "favorites": "Favorites", "watchLater": "Watch Later", "trash": "Trash",
+    "collections": "COLLECTIONS", "tags": "TAGS", "platforms": "PLATFORMS", "totalProfiles": "Total Profiles",
+    "growArchive": "Grow your archive by adding new profiles!", "newTag": "New tag", "newPlatform": "New custom platform",
+    "sortAria": "{{section}} sorting", "sortAZ": "A–Z", "sortCount": "Count", "hide": "Hide sidebar", "show": "Show sidebar",
+    "editCollection": "Edit collection", "deleteCollection": "Delete collection", "editTag": "Edit tag", "deleteTag": "Delete tag",
+    "editPlatform": "Edit platform", "deletePlatform": "Delete platform", "custom": "custom", "tagPlaceholder": "Tag name…",
+    "noTags": "No tags yet", "greatCollection": "You are building a great collection! ✨", "resize": "Resize sidebar", "resizeHint": "Drag to resize the sidebar"
+  },
+  "topbar": { "search": "Search by name, username (@), or tag…", "newProfile": "Add New Profile", "lightTheme": "Switch to light theme", "darkTheme": "Switch to dark theme" },
+  "filters": {
+    "all": "All", "favorites": "Favorites", "hasWebsite": "Has Website", "newest": "Added: Newest", "profiles": "{{count}} profiles",
+    "oldest": "Added: Oldest", "nameAZ": "Name: A–Z", "nameZA": "Name: Z–A", "favoritesFirst": "Favorites First",
+    "perPage": "Per page", "perPageAria": "Profiles per page", "count": "Count:", "grid": "Grid view", "list": "List view", "active": "Active filter:"
+  },
+  "pagination": { "range": "{{from}}–{{to}} / {{total}} profiles", "previous": "Previous", "next": "Next", "aria": "Profile pages", "page": "Page {{page}}" },
+  "profile": {
+    "add": "Add Profile", "edit": "Edit Profile", "details": "Profile Details", "username": "Username", "displayName": "Display Name",
+    "bio": "Bio", "notes": "Notes", "links": "Links", "tags": "Tags", "collections": "Collections", "activity": "Activity",
+    "verified": "Verified", "favorite": "Favorite", "addFavorite": "Add to Favorites", "removeFavorite": "Remove from Favorites",
+    "addWatchLater": "Add to Watch Later", "removeWatchLater": "Remove from Watch Later", "moveToTrash": "Move to Trash",
+    "noLinks": "No links have been added yet.", "noNotes": "No notes yet. Select Edit to add your notes.", "noActivity": "No activity yet.",
+    "activityLoading": "Loading activity…", "addTag": "Add Tag", "newTagPlaceholder": "New tag (e.g. Fashion, Cosplay)…",
+    "removeTag": "Remove tag", "addCollection": "Add Collection", "collectionPlaceholder": "Collection name…",
+    "removeCollection": "Click to remove from collection", "added": "Added: {{date}}", "lastUpdated": "Last updated: {{date}}", "saveProfile": "Save Profile",
+    "savingProfile": "Saving…", "created": "Profile created", "updated": "Profile updated", "gallery": "{{name}} photo gallery",
+    "previousPhoto": "Previous photo", "nextPhoto": "Next photo", "closeGallery": "Close gallery", "showPhoto": "Show photo {{number}}", "photoAlt": "{{name}} — photo {{number}}",
+    "openGallery": "Open {{name}} gallery in full screen", "openDetails": "Open {{name}} details", "openPlatform": "Open {{platform}} profile",
+    "more": "More", "photoCount": "+{{count}} photos", "websiteAvailable": "Personal website available", "editProfile": "Edit Profile", "copied": "Copied!", "openProfile": "Open Profile", "possibleDuplicate": "This profile may already be saved:",
+    "inTrash": "This profile is in Trash. Would you like to restore it?", "continueAnyway": "You can still continue and save it.",
+    "restoreThis": "Restore this profile", "checkingDuplicates": "Checking for duplicates…", "closePanel": "Close panel", "copyLink": "Copy link", "notesPlaceholder": "Write your notes about this profile…",
+    "modalSubtitle": "Add multiple platform links and photos", "duplicateHint": "Review the matches; you can still continue saving.", "searchingSimilar": "Searching for similar profiles…", "trashDuplicate": "This profile is in Trash.", "restoring": "Restoring…", "usernameRequired": "Username (@)", "nameRequired": "Display Name (Real Name)", "nameExample": "e.g. Elena Rose", "photo": "Profile Photo", "fromUrl": "Add from URL", "fromComputer": "Upload from Computer", "preview": "Preview", "quickPortraits": "Quick ready-made portraits:", "uploadingImage": "Uploading image…", "dropImages": "Drop images here or choose files", "imageTypes": "Multiple JPG, PNG, or WEBP files (maximum 5 MB each)", "reorderImages": "Drag images to reorder them; the starred image is the card cover.", "photoNumber": "Photo {{number}}", "makeCover": "Make cover", "cover": "Cover", "deletePhoto": "Delete photo", "platformLinks": "Platform Links", "definePlatform": "Define Custom Platform", "addLink": "Add Link", "customPlatform": "Custom", "removeLink": "Remove link", "quickAdd": "Quick add:", "bioQuote": "Bio / Quote (shown in quotation marks)", "bioPlaceholder": "A short bio or quote…", "tagInput": "Type a new tag and press Enter…", "suggestions": "Suggestions:", "personalNotes": "Personal Notes", "personalNotesPlaceholder": "Shoot ideas, agency notes, and more…", "validationRequired": "Please fill in the username and name fields.", "unsupportedImage": "Only JPG, PNG, and WEBP images are supported.", "imageTooLarge": "Images can be up to 5 MB.", "uploadFailed": "Upload failed.", "uploadServerError": "An error occurred while uploading the image.", "saveFailed": "Something went wrong while saving the profile.",
+    "optionalLabel": "Label (optional)", "activityCreated": "Profile created", "activityEdited": "Profile details edited", "activityFavorited": "Added to favorites", "activityUnfavorited": "Removed from favorites", "activityRestored": "Restored from Trash", "activityTagAdded": "Tag added: {{name}}", "activityTagRemoved": "Tag removed: {{name}}", "activityCollectionAdded": "Added to collection: {{name}}", "activityCollectionRemoved": "Removed from collection: {{name}}", "activityNoteUpdated": "Note updated — before: {{before}}, after: {{after}}"
+  },
+  "trash": {
+    "title": "Trash", "description": "Deleted profiles are kept here until the retention period selected in Settings ends, then they are permanently removed.", "empty": "Trash is Empty",
+    "restore": "Restore", "deleteForever": "Delete Permanently", "emptyTrash": "Empty Trash", "daysRemaining": "{{count}} days remaining",
+    "confirmDeleteTitle": "Delete Profile Permanently", "confirmDelete": "This profile and its images will be permanently deleted. This cannot be undone.", "emptyDescription": "There are no deleted profiles. All your profiles are safe in the main archive.", "backToArchive": "Back to Archive", "confirmEmpty": "Yes, Empty It", "areYouSure": "Are you sure?", "profileCount": "{{count}} profiles", "deletedAt": "Deleted: {{date}}"
+  },
+  "apiAccess": { "title": "API Access", "description": "Access keys for external clients such as the Chrome extension.", "newKey": "Create New Key", "ready": "Your new key is ready", "copyHint": "Copy it now and store it somewhere safe.", "keyName": "Key name", "created": "Created: {{date}} · Last used: {{lastUsed}}", "neverUsed": "Never used", "revoke": "Revoke", "empty": "No API keys yet.", "revokeTitle": "Revoke API Key", "revokeMessage": "The key {{name}} will no longer work.", "defaultLabel": "Chrome Extension" },
+  "settings": {
+    "title": "Settings", "subtitle": "Manage FindDex behavior and data.", "appearance": "Appearance & Preferences",
+    "appearanceDescription": "Theme, language, and home page defaults.", "theme": "Theme", "dark": "Dark", "light": "Light", "system": "System",
+    "defaultView": "Default view", "grid": "Grid", "list": "List", "perPage": "Profiles per page", "defaultSort": "Default sorting",
+    "sidebar": "Sidebar", "sidebarDescription": "Reset width to 260px and make it visible.", "resetSidebar": "Reset Sidebar", "sidebarReset": "Reset complete",
+    "dataManagement": "Data Management", "dataDescription": "Transfers, automatic backups, and retention settings.",
+    "export": "Export", "exportDescription": "JSON or ZIP with images", "import": "Import", "importDescription": "Merge or safe replacement",
+    "autoBackup": "Automatic backup", "autoBackupDescription": "Creates a JSON backup in `/app/data/backups` every night at 03:00.",
+    "backupRetention": "Backups to keep", "backupNow": "Back Up Now", "existingBackups": "Existing backups · Latest: {{date}}", "noBackups": "No backups yet.",
+    "trashRetention": "Trash retention", "trashRetentionHint": "Automatic cleanup uses this period.", "days": "{{count}} days",
+    "storage": "Storage usage", "profiles": "Profiles", "images": "Images", "uploads": "Uploads", "database": "Database",
+    "maintenance": "Maintenance / Cleanup", "maintenanceDescription": "Safely find unused records and orphaned files.", "migration": "Migration",
+    "unused": "Unused items", "unusedDescription": "Tags and collections used by 0 profiles.", "orphanFiles": "Orphaned files", "tag": "Tag", "collection": "Collection",
+    "orphanDescription": "Upload files that are not referenced by any image record.", "cleanDisk": "Clean Disk", "technical": "Technical information", "noneUnused": "No unused items found.", "noneOrphaned": "No orphaned files found.", "deleteSelected": "Delete selected ({{count}})", "deleteSelectedFiles": "Delete selected files ({{count}})",
+    "danger": "Danger Zone", "dangerDescription": "These actions cannot be undone. Export or back up your data first.",
+    "emptyTrash": "Empty Trash Completely", "emptyTrashDescription": "Permanently deletes {{count}} trashed profiles and their images.",
+    "resetAll": "Reset All Data", "resetAllDescription": "Permanently deletes {{profiles}} profiles, {{tags}} tags, and {{collections}} collections.",
+    "loadDemo": "Load Demo Content", "loadDemoDescription": "Deletes all current data and loads only the 7 original demo profiles.",
+    "typeToContinue": "Type {{text}} to continue", "resetting": "Resetting…", "emptyTrashButton": "Empty Trash",
+    "deletedProfiles": "{{count}} profiles were permanently deleted.", "allDataDeleted": "All profile, tag, and collection data was permanently deleted.",
+    "deleteOrphansTitle": "Delete Orphaned Files", "deleteUnusedTitle": "Delete Unused Items", "deleteFilesMessage": "{{count}} files will be permanently deleted from disk.", "deleteItemsMessage": "{{count}} unused items will be permanently deleted.", "deletePermanently": "Delete Permanently",
+    "emptyTrashMessage": "{{count}} trashed profiles and their images will be permanently deleted. This cannot be undone.", "emptyTrashConfirm": "Delete Trash Permanently",
+    "resetMessage": "This will permanently delete {{profiles}} profiles, {{tags}} tags, and {{collections}} collections. It cannot be undone.",
+    "demoMessage": "This will permanently delete ALL OF YOUR CURRENT DATA (profiles, tags, collections, and trash) and replace it with the original demo profiles. All data you added will be lost.", "cards": "{{count}} cards"
+  },
+  "stats": {
+    "title": "Statistics", "subtitle": "A quick overview of your archive.", "totalProfiles": "Total Profiles", "favorites": "Favorites",
+    "collections": "Collections", "trash": "Trash", "platformDistribution": "Platform Distribution", "topTags": "Top 10 Tags",
+    "trend": "Profiles Added in the Last 30 Days", "thirtyDaysAgo": "30 days ago", "today": "Today", "verifiedRate": "Verified Profile Rate",
+    "noData": "No data yet.", "loadError": "Could not load statistics.", "loading": "Preparing statistics…", "archiveSummary": "A current summary of your FindDex archive", "profileCount": "{{count}} profiles"
+  },
+  "edit": { "required": "Name cannot be empty.", "renameFailed": "Could not rename the item.", "renameCollection": "Rename Collection", "newCollectionName": "New Collection Name", "renameTag": "Rename Tag", "newTagName": "New Tag Name", "tagColor": "Tag Color", "selectColor": "Select {{color}} color" },
+  "platformModal": { "edit": "Edit Platform", "add": "Add New Platform", "editDescription": "Change the platform name, icon, and color", "addDescription": "Define a custom social media or web platform", "quickSuggestions": "Quick Suggestions", "name": "Platform Name", "namePlaceholder": "e.g. OnlyFans, Patreon, Twitch…", "icon": "Icon or Emoji", "iconHint": "Enter an emoji or choose one below", "color": "Brand Color (Button Style)", "preview": "Button Preview", "open": "Open {{name}}", "save": "Save Platform", "adding": "Adding…", "required": "Please enter a platform name.", "failed": "The operation failed.", "colors": { "sky": "Sky", "orange": "Orange", "emerald": "Emerald", "purple": "Purple", "pink": "Pink", "gold": "Gold", "graphite": "Dark Graphite", "red": "Crimson" } },
+  "transfer": {
+    "exportTitle": "Export Data", "importTitle": "Import Data", "json": "JSON only", "zip": "JSON + uploaded images (ZIP)",
+    "selectFile": "Choose a JSON or ZIP file", "merge": "Add to existing data", "replace": "Delete existing data and replace it",
+    "replaceWarning": "Replace mode permanently deletes all existing data before import.", "importing": "Importing…", "exporting": "Exporting…", "title": "Import / Export", "description": "Back up your data or move it to another FindDex installation.", "downloadJson": "Download JSON", "jsonDescription": "All records and relationships.", "downloadZip": "Download ZIP", "zipDescription": "JSON and all uploaded images.", "choose": "Choose JSON or ZIP", "finddexFile": "FindDex export file", "mergeDescription": "Profiles with the same username are updated.", "replaceDescription": "All existing database records are removed.", "chooseError": "Please choose a JSON or ZIP file.", "importFailed": "Import failed.", "imported": "Imported {{profiles}} profiles and {{uploads}} images.", "replaceTitle": "Replace All Existing Data", "replaceMessage": "This will permanently delete existing profiles, platforms, tags, and collections and replace them with the selected backup. Do you want to continue?", "replaceConfirm": "Delete and Import"
+  }
+}
