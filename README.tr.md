@@ -34,8 +34,6 @@ FindDex, gelip geçen bu keşifleri kendi aranabilir hafızanıza dönüştürü
 
 ![FindDex açık ve koyu tema karşılaştırması](docs/screenshots/theme-comparison.png)
 
-> Ekran görüntüleri yakında eklenecek. Yukarıdaki dosyaları `docs/screenshots/` klasörüne koyduğunuzda burada otomatik olarak görünecekler.
-
 ## Gereksinimler
 
 - Docker Engine
