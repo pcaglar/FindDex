@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getProfileById, updateProfile, softDeleteProfile } from '@/lib/profileService';
+import { ImageStorageError } from '@/lib/imageStorage';
+import { cleanupDownloadedImages, localizeRemoteProfileImages } from '@/lib/remoteImage';
 
 export async function GET(
   request: NextRequest,
@@ -21,15 +23,27 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  let downloadedUrls: string[] = [];
   try {
     const body = await request.json();
-    const updated = await updateProfile(params.id, body);
+    const localized = await localizeRemoteProfileImages(body);
+    downloadedUrls = localized.storedUrls;
+    const updated = await updateProfile(params.id, localized.data);
     if (!updated) {
+      await cleanupDownloadedImages(downloadedUrls);
+      downloadedUrls = [];
       return NextResponse.json({ success: false, error: 'Profile not found' }, { status: 404 });
     }
     return NextResponse.json({ success: true, data: updated });
   } catch (error) {
+    await cleanupDownloadedImages(downloadedUrls);
     console.error('Error in PUT /api/profiles/[id]:', error);
+    if (error instanceof ImageStorageError) {
+      return NextResponse.json(
+        { success: false, error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
     return NextResponse.json({ success: false, error: 'Update failed' }, { status: 500 });
   }
 }

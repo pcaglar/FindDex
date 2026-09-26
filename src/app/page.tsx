@@ -394,24 +394,28 @@ export default function HomePage() {
 
   // Save profile from Add / Edit modal
   const handleSaveModalProfile = async (data: any) => {
+    const endpoint = modalInitialData ? `/api/profiles/${modalInitialData.id}` : '/api/profiles';
+    const res = await fetch(endpoint, {
+      method: modalInitialData ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (!res.ok || !result.success) {
+      const error = new Error(result.error || t('profile.saveFailed')) as Error & { code?: string };
+      error.code = result.code;
+      throw error;
+    }
+
     if (modalInitialData) {
-      // Edit existing
-      await handleUpdateProfile(modalInitialData.id, data);
+      setProfiles((prev) => prev.map((profile) => profile.id === modalInitialData.id ? result.data : profile));
+      await Promise.all([fetchProfiles(true), refreshSidebarData()]);
     } else {
-      // Create new
-      const res = await fetch('/api/profiles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      const result = await res.json();
-      if (result.success) {
-        setPage(1);
-        setProfiles((current) => [result.data, ...current.filter((profile) => profile.id !== result.data.id)].slice(0, pageSize));
-        await Promise.all([fetchProfiles(true), refreshSidebarData()]);
-        setSelectedProfileId(result.data.id);
-        setIsDetailOpen(true);
-      }
+      setPage(1);
+      setProfiles((current) => [result.data, ...current.filter((profile) => profile.id !== result.data.id)].slice(0, pageSize));
+      await Promise.all([fetchProfiles(true), refreshSidebarData()]);
+      setSelectedProfileId(result.data.id);
+      setIsDetailOpen(true);
     }
   };
 

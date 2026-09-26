@@ -113,7 +113,11 @@ export function ProfileModal({
         : initialData.avatarUrl ? [{ url: initialData.avatarUrl, isCover: true, sortOrder: 0 }] : [];
       setImages(initialImages);
       setAvatarUrl(initialImages.find((image) => image.isCover)?.url || initialImages[0]?.url || '');
-      setImageMode(initialData.avatarUrl?.startsWith('/uploads/') ? 'upload' : 'url');
+      setImageMode(
+        initialData.avatarUrl?.startsWith('/uploads/') || initialData.avatarUrl?.startsWith('/api/uploads/')
+          ? 'upload'
+          : 'url'
+      );
       setBio(initialData.bio || '');
       setNotes(initialData.notes || '');
       setTags(initialData.tags || []);
@@ -410,7 +414,15 @@ export function ProfileModal({
       onClose();
     } catch (err) {
       console.error(err);
-      setErrorMessage(t('profile.saveFailed'));
+      const errorCode = err instanceof Error && 'code' in err ? String(err.code) : '';
+      const messageByCode: Record<string, string> = {
+        INVALID_IMAGE_URL: t('profile.invalidImageUrl'),
+        IMAGE_DOWNLOAD_TIMEOUT: t('profile.imageDownloadTimeout'),
+        IMAGE_DOWNLOAD_FAILED: t('profile.imageDownloadFailed'),
+        IMAGE_TOO_LARGE: t('profile.imageTooLarge'),
+        UNSUPPORTED_IMAGE: t('profile.unsupportedImage'),
+      };
+      setErrorMessage(messageByCode[errorCode] || (err instanceof Error ? err.message : t('profile.saveFailed')));
     } finally {
       setIsSubmitting(false);
     }
