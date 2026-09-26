@@ -34,8 +34,6 @@ FindDex turns those passing discoveries into your own searchable memory. Save an
 
 ![FindDex light and dark theme comparison](docs/screenshots/theme-comparison.png)
 
-> Screenshots coming soon. Add the files above to `docs/screenshots/` and they will appear here automatically.
-
 ## Requirements
 
 - Docker Engine
