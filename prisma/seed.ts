@@ -1,12 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
+import { SYSTEM_PLATFORMS } from './systemDefaults';
 
-export const DEMO_PLATFORMS = [
-  { key: 'instagram', name: 'Instagram', icon: 'instagram', color: 'from-pink-500 via-rose-500 to-amber-500', isCustom: false },
-  { key: 'twitter', name: 'X (Twitter)', icon: 'twitter', color: 'from-slate-700 to-slate-900', isCustom: false },
-  { key: 'tiktok', name: 'TikTok', icon: 'tiktok', color: 'from-cyan-400 to-pink-500', isCustom: false },
-  { key: 'youtube', name: 'YouTube', icon: 'youtube', color: 'from-red-600 to-red-700', isCustom: false },
-  { key: 'website', name: 'Website', icon: 'website', color: 'from-blue-600 to-indigo-600', isCustom: false },
-] as const;
+export const DEMO_PLATFORMS = SYSTEM_PLATFORMS;
 
 export type DemoProfile = {
   id: string; username: string; displayName: string; avatarUrl: string;
