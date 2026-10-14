@@ -176,8 +176,9 @@ bağlantı tekrar gönderilirse fotoğraflar çoğaltılmaz. Çöp kutusundaki p
 
 Bot sadece izinli kullanıcının özel sohbetini işler. `/start` ve `/help` yardım
 gösterir. Mesaj, iletilmiş metin veya fotoğraf açıklamasında en fazla beş bağlantı
-gönderilebilir. İlk gönderi fotoğrafı kapak olur; en fazla 20 gönderi fotoğrafı ve
-profil fotoğrafı kaydedilir. JPG/PNG/WEBP ve dosya başına 5 MB sınırı geçerlidir;
+gönderilebilir. Gönderi/reel bağlantıları yalnızca gönderideki görselleri (en fazla
+20 fotoğraf) kaydeder; hesap sahibinin profil fotoğrafı eklenmez. Profil bağlantıları
+yalnızca profil fotoğrafını kaydeder. İlk görsel kapak olur. JPG/PNG/WEBP ve dosya başına 5 MB sınırı geçerlidir;
 video dosyaları alınmaz. Fotoğraf indirme başarısızsa kısmi kayıt yapılmaz.
 
 Bot long polling kullanır; FindDex'i internete açmak veya webhook kurmak gerekmez.

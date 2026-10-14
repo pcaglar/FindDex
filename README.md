@@ -184,8 +184,9 @@ TELEGRAM_BOT_LANGUAGE=en
 `owner_info.username`, optional owner metadata and `post_info.image_urls` or
 `post_info.full_res_image_url`. Instagram CDN photo URLs must be HTTPS. FindDex
 downloads JPG/PNG/WEBP files immediately and keeps the existing 5 MB per-image
-limit. At most 20 post photos plus the profile picture are imported; the first
-post photo is the initial cover. If any required photo download fails, nothing
+limit. Post and reel links import only their media (at most 20 photos); the owner's
+profile picture is excluded. Profile links import only the profile picture.
+The first imported photo is the initial cover. If any required photo download fails, nothing
 is saved. Video files are not imported.
 
 5. Start the worker:

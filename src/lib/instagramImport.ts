@@ -26,7 +26,7 @@ export function canonicalInstagramUrl(value: unknown) {
 }
 
 type ImportResult = { id: string; username: string; displayName: string; imagesAdded: number; outcome: 'created' | 'updated' | 'already_saved' };
-type ScrapedProfile = { username: string; displayName: string; bio: string; isVerified: boolean; profileUrl: string; postImages: string[]; avatar: string | null; websites: string[] };
+type ScrapedProfile = { username: string; displayName: string; bio: string; isVerified: boolean; profileUrl: string; images: string[]; websites: string[] };
 const record = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 const text = (value: unknown, max: number) => typeof value === 'string' ? value.trim().slice(0, max) : '';
 
@@ -47,11 +47,14 @@ function parseScrapedProfile(value: unknown, sourceUrl: string): ScrapedProfile 
   const username = text(owner.username, 100).replace(/^@/, '').toLowerCase();
   if (!/^[a-z0-9._]{1,30}$/.test(username)) throw new InstagramImportError('INVALID_SCRAPER_RESPONSE');
   const profileUrl = `https://www.instagram.com/${username}/`;
-  if (new URL(sourceUrl).pathname.split('/').filter(Boolean).length === 1 && profileUrl !== sourceUrl) throw new InstagramImportError('INVALID_SCRAPER_RESPONSE');
-  if (post.post_url && canonicalInstagramUrl(post.post_url) !== sourceUrl) throw new InstagramImportError('INVALID_SCRAPER_RESPONSE');
-  const rawImages = Array.isArray(post.image_urls) && post.image_urls.length ? post.image_urls : [post.full_res_image_url].filter(Boolean);
+  const isProfileUrl = new URL(sourceUrl).pathname.split('/').filter(Boolean).length === 1;
+  if (isProfileUrl && profileUrl !== sourceUrl) throw new InstagramImportError('INVALID_SCRAPER_RESPONSE');
+  if (!isProfileUrl && post.post_url && canonicalInstagramUrl(post.post_url) !== sourceUrl) throw new InstagramImportError('INVALID_SCRAPER_RESPONSE');
+  // A shared post imports only its media; the owner's avatar belongs to profile links.
+  const rawImages = isProfileUrl ? [owner.profile_pic_url].filter(Boolean)
+    : Array.isArray(post.image_urls) && post.image_urls.length ? post.image_urls : [post.full_res_image_url].filter(Boolean);
   if (rawImages.length > 20) throw new InstagramImportError('TOO_MANY_IMAGES');
-  const postImages = [...new Set(rawImages.map(imageUrl).filter((url): url is string => Boolean(url)))];
+  const images = [...new Set(rawImages.map(imageUrl).filter((url): url is string => Boolean(url)))];
   const websites: string[] = [];
   const links = Array.isArray(owner.links) ? owner.links : [];
   for (const value of [...links, owner.external_url]) {
@@ -62,7 +65,7 @@ function parseScrapedProfile(value: unknown, sourceUrl: string): ScrapedProfile 
     } catch { /* Ignore non-URL metadata. */ }
   }
   return { username, displayName: text(owner.full_name, 200) || username, bio: text(owner.biography, 5000),
-    isVerified: owner.is_verified === true, profileUrl, postImages, avatar: imageUrl(owner.profile_pic_url), websites: websites.slice(0, 10) };
+    isVerified: owner.is_verified === true, profileUrl, images, websites: websites.slice(0, 10) };
 }
 
 async function scrape(sourceUrl: string) {
@@ -119,11 +122,11 @@ export async function importInstagramUrl(input: unknown): Promise<ImportResult> 
   if (previous) return previous;
   const data = await scrape(sourceUrl);
   const existing = await findOwner(prisma, data);
-  const sourceImages = [...new Set([...data.postImages, ...(!existing && data.avatar ? [data.avatar] : [])])];
-  if (!sourceImages.length) {
-    if (existing) return { id: existing.id, username: existing.username, displayName: existing.displayName, imagesAdded: 0, outcome: 'already_saved' };
-    throw new InstagramImportError('NO_IMAGES');
+  if (sourceUrl === data.profileUrl && existing?.images.length) {
+    return { id: existing.id, username: existing.username, displayName: existing.displayName, imagesAdded: 0, outcome: 'already_saved' };
   }
+  const sourceImages = data.images;
+  if (!sourceImages.length) throw new InstagramImportError('NO_IMAGES');
   const storedUrls: string[] = [];
   let committed = false;
   try {

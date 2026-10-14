@@ -18,6 +18,11 @@ async function main() {
   let invalidOwner = false;
   let wrongMime = false;
   let photos = 2;
+  let username = 'example';
+  let emptyMetadata = false;
+  let fullImageFallback = false;
+  let avatar = 'https://scontent.cdninstagram.com/avatar.jpg';
+  const downloadedPaths: string[] = [];
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jO1sAAAAASUVORK5CYII=', 'base64');
   const source = (id: string) => `https://www.instagram.com/p/${id}/`;
   const files = async () => readdir(process.env.UPLOADS_DIR!).catch(() => [] as string[]);
@@ -32,11 +37,14 @@ async function main() {
       const url = new URL(String(input));
       if (url.hostname === 'scraper.test') {
         scrapeCalls += 1;
-        return Response.json({ owner_info: { username: invalidOwner ? '' : 'example', full_name: 'Example', biography: 'Test bio', is_verified: true,
-          links: ['https://example.org/'], profile_pic_url: 'https://scontent.cdninstagram.com/avatar.jpg' },
-        post_info: { post_url: url.searchParams.get('url'), image_urls: Array.from({ length: photos }, (_, index) => `https://instagram.test.fbcdn.net/${index}.png`) } });
+        return Response.json({ owner_info: { username: invalidOwner ? '' : username, full_name: emptyMetadata ? '' : 'Example', biography: emptyMetadata ? '' : 'Test bio', is_verified: emptyMetadata ? null : true,
+          links: ['https://example.org/'], profile_pic_url: avatar },
+        post_info: { post_url: url.searchParams.get('url'),
+          full_res_image_url: fullImageFallback ? 'https://instagram.test.fbcdn.net/fallback.png' : undefined,
+          image_urls: Array.from({ length: photos }, (_, index) => `https://instagram.test.fbcdn.net/${index}.png`) } });
       }
       downloadCalls += 1;
+      downloadedPaths.push(url.pathname);
       if (failImage && url.pathname === '/1.png') return new Response(null, { status: 403 });
       return new Response(png, { headers: { 'Content-Type': wrongMime ? 'text/html' : 'image/png' } });
     };
@@ -55,9 +63,10 @@ async function main() {
     const response = await POST(request(source('One')));
     assert.equal(response.status, 201);
     const result = (await response.json()).data;
-    assert.equal(result.imagesAdded, 3);
+    assert.equal(result.imagesAdded, 2);
     const initial = await prisma.profile.findUniqueOrThrow({ where: { id: result.id }, include: { images: { orderBy: { sortOrder: 'asc' } }, platformLinks: true } });
-    assert.equal(initial.images.length, 3);
+    assert.equal(initial.images.length, 2);
+    assert.deepEqual(downloadedPaths, ['/0.png', '/1.png']);
     assert.equal(initial.images.filter((image) => image.isCover).length, 1);
     assert.equal(initial.isVerified, true);
     assert.ok(initial.platformLinks.some((link) => link.url === 'https://www.instagram.com/example/'));
@@ -71,7 +80,7 @@ async function main() {
     assert.equal(downloadCalls, downloads);
     assert.equal(scrapeCalls, 1);
     assert.equal(await prisma.profile.count(), 1);
-    console.log('PASS: API saves owner, website, three local images; replay skips scraper and downloads');
+    console.log('PASS: carousel saves only its two post images; replay skips scraper and downloads');
 
     const tag = await prisma.tag.create({ data: { name: 'Keep tag' } });
     const collection = await prisma.collection.create({ data: { name: 'Keep collection' } });
@@ -80,7 +89,7 @@ async function main() {
     photos = 1;
     assert.equal((await importInstagramUrl(source('Two'))).outcome, 'updated');
     const updated = await prisma.profile.findUniqueOrThrow({ where: { id: initial.id }, include: { images: true, tags: true, collections: true } });
-    assert.equal(updated.images.length, 4);
+    assert.equal(updated.images.length, 3);
     assert.equal(updated.images.filter((image) => image.isCover).length, 1);
     assert.equal(updated.avatarUrl, initial.avatarUrl);
     assert.equal(updated.notes, 'Keep notes');
@@ -89,6 +98,42 @@ async function main() {
     assert.equal(updated.tags[0].tagId, tag.id);
     assert.equal(updated.collections[0].collectionId, collection.id);
     console.log('PASS: another post appends photos while preserving notes, name, favorite, tags, collection and cover');
+
+    username = 'singlephoto';
+    emptyMetadata = true;
+    // An irrelevant avatar must neither be validated nor downloaded for post/reel links.
+    avatar = 'not-an-image-url';
+    const beforeSingle = downloadedPaths.length;
+    const single = await importInstagramUrl(source('Single'));
+    assert.equal(single.outcome, 'created');
+    assert.equal(single.displayName, username);
+    assert.equal(single.imagesAdded, 1);
+    assert.equal(await prisma.profileImage.count({ where: { profileId: single.id } }), 1);
+    assert.deepEqual(downloadedPaths.slice(beforeSingle), ['/0.png']);
+    const reel = await importInstagramUrl('https://www.instagram.com/reel/SingleReel/');
+    assert.equal(reel.imagesAdded, 1);
+    assert.equal(downloadedPaths.at(-1), '/0.png');
+    photos = 0;
+    const beforeMissing = downloadCalls;
+    await assert.rejects(importInstagramUrl(source('Missing')), { code: 'NO_IMAGES' });
+    assert.equal(downloadCalls, beforeMissing);
+    fullImageFallback = true;
+    assert.equal((await importInstagramUrl(source('Fallback'))).imagesAdded, 1);
+    assert.equal(downloadedPaths.at(-1), '/fallback.png');
+    fullImageFallback = false;
+    console.log('PASS: single photo, reel and full-resolution fallback exclude avatar; missing post media does not fall back to it');
+
+    username = 'profileonly';
+    avatar = 'https://scontent.cdninstagram.com/avatar.jpg';
+    photos = 2;
+    const beforeProfile = downloadedPaths.length;
+    const profileOnly = await importInstagramUrl(`https://www.instagram.com/${username}/`);
+    assert.equal(profileOnly.imagesAdded, 1);
+    assert.deepEqual(downloadedPaths.slice(beforeProfile), ['/avatar.jpg']);
+    assert.equal(await prisma.profileImage.count({ where: { profileId: profileOnly.id } }), 1);
+    console.log('PASS: profile links still import only the profile picture');
+    username = 'example';
+    emptyMetadata = false;
 
     await prisma.profile.update({ where: { id: initial.id }, data: { deletedAt: new Date() } });
     const beforeTrash = downloadCalls;
@@ -101,11 +146,12 @@ async function main() {
     console.log('PASS: trashed profiles are never restored or modified automatically');
 
     const beforeFailure = (await files()).sort();
+    const beforeFailureCount = await prisma.profileImage.count();
     photos = 2;
     failImage = true;
     await assert.rejects(importInstagramUrl(source('Failure')), { code: 'IMAGE_DOWNLOAD_FAILED' });
     assert.deepEqual((await files()).sort(), beforeFailure);
-    assert.equal(await prisma.profileImage.count(), 4);
+    assert.equal(await prisma.profileImage.count(), beforeFailureCount);
     failImage = false;
     wrongMime = true;
     await assert.rejects(importInstagramUrl(source('Mime')), { code: 'UNSUPPORTED_IMAGE' });
