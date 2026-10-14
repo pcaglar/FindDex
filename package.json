@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "telegram:bot": "node --env-file=.env scripts/telegram-bot.mjs",
+    "telegram:setup": "node --env-file=.env scripts/setup-telegram.mjs",
+    "test:telegram": "node --test scripts/test-telegram-bot.mjs && tsx scripts/test-instagram-import.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

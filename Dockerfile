@@ -29,7 +29,7 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 RUN apk add --no-cache openssl su-exec \
-    && mkdir -p /app/data/backups /app/public/uploads \
+    && mkdir -p /app/data/backups /app/public/uploads /app/telegram-state \
     && chown -R node:node /app
 
 ENV NODE_ENV=production \
@@ -44,6 +44,8 @@ COPY --from=builder --chown=node:node /app/prisma ./prisma
 COPY --from=builder --chown=node:node /app/package.json ./package.json
 COPY --chown=node:node scripts/docker-prepare-database.mjs ./scripts/docker-prepare-database.mjs
 COPY --chown=node:node scripts/backup-scheduler.mjs ./scripts/backup-scheduler.mjs
+COPY --chown=node:node scripts/telegram-bot.mjs ./scripts/telegram-bot.mjs
+COPY --chown=node:node locales ./locales
 COPY --chown=node:node docker-entrypoint.sh ./docker-entrypoint.sh
 
 EXPOSE 3000

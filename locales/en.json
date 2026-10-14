@@ -89,5 +89,38 @@
     "exportTitle": "Export Data", "importTitle": "Import Data", "json": "JSON only", "zip": "JSON + uploaded images (ZIP)",
     "selectFile": "Choose a JSON or ZIP file", "merge": "Add to existing data", "replace": "Delete existing data and replace it",
     "replaceWarning": "Replace mode permanently deletes all existing data before import.", "importing": "Importing…", "exporting": "Exporting…", "title": "Import / Export", "description": "Back up your data or move it to another FindDex installation.", "downloadJson": "Download JSON", "jsonDescription": "All records and relationships.", "downloadZip": "Download ZIP", "zipDescription": "JSON and all uploaded images.", "choose": "Choose JSON or ZIP", "finddexFile": "FindDex export file", "mergeDescription": "Profiles with the same username are updated.", "replaceDescription": "All existing database records are removed.", "chooseError": "Please choose a JSON or ZIP file.", "importFailed": "Import failed.", "imported": "Imported {{profiles}} profiles and {{uploads}} images.", "replaceTitle": "Replace All Existing Data", "replaceMessage": "This will permanently delete existing profiles, platforms, tags, and collections and replace them with the selected backup. Do you want to continue?", "replaceConfirm": "Delete and Import"
+  },
+  "telegramBot": {
+    "help": "Send an Instagram post, reel or profile link. FindDex saves the owner and photos automatically. Send /whoami to see your Telegram user ID.",
+    "whoami": "Your Telegram user ID: {{id}}",
+    "setup": "Imports are disabled. Set TELEGRAM_ALLOWED_USER_ID={{id}} in the server .env file and restart the bot.",
+    "notConfigured": "The FindDex API key is missing. Configure FINDDEX_BOT_API_KEY on the server.",
+    "invalidUrl": "Send a valid Instagram post, reel or profile link.",
+    "tooManyLinks": "Send at most 5 Instagram links in one message.",
+    "connectionError": "Could not reach FindDex. Please resend the link later.",
+    "created": "{{name}} (@{{username}}) saved with {{count}} photos.",
+    "updated": "{{count}} photos added to {{name}} (@{{username}}). Existing notes and cover preserved.",
+    "already_saved": "Already saved: {{name}} (@{{username}}). No duplicate photos were added.",
+    "errors": {
+      "UNAUTHORIZED": "The FindDex API key is invalid or revoked. Update FINDDEX_BOT_API_KEY on the server.",
+      "INVALID_INSTAGRAM_URL": "Send a valid Instagram post, reel or profile link.",
+      "SCRAPER_NOT_CONFIGURED": "The scraper is not configured. Set INSTAGRAM_SCRAPER_URL on the server.",
+      "SCRAPER_FAILED": "The scraper could not read this link. Try again later; profile links require scraper support.",
+      "INVALID_SCRAPER_RESPONSE": "The scraper returned incomplete or unsupported data. Nothing was saved.",
+      "TOO_MANY_IMAGES": "This post has more than 20 images and cannot be imported.",
+      "NO_IMAGES": "No supported photos were found. Nothing was saved.",
+      "PROFILE_IN_TRASH": "This profile is in Trash. Restore it in FindDex before sending the link again.",
+      "AMBIGUOUS_PROFILE": "Multiple profiles match this Instagram account. Resolve them in FindDex first.",
+      "INSTAGRAM_PLATFORM_MISSING": "The Instagram platform is missing in FindDex.",
+      "IMAGE_DOWNLOAD_TIMEOUT": "A photo download timed out. Nothing was saved; try again.",
+      "IMAGE_DOWNLOAD_FAILED": "A photo could not be downloaded. Nothing was saved; try again.",
+      "IMAGE_TOO_LARGE": "A photo exceeds the 5 MB limit. Nothing was saved.",
+      "UNSUPPORTED_IMAGE": "Only JPG, PNG and WEBP photos are supported. Nothing was saved.",
+      "INVALID_IMAGE_URL": "The scraper returned an invalid photo URL. Nothing was saved.",
+      "IMPORT_FAILED": "The profile could not be saved. Please try again."
+    },
+    "keyLabel": "Telegram bot",
+    "setupReady": "Telegram API key and configuration prepared in .env. Fill in the bot token, allowed user ID and scraper URL, then start the telegram Compose profile.",
+    "setupFailed": "Telegram setup failed. Check that .env exists, is writable and FindDex is running at FINDDEX_INTERNAL_URL or APP_PORT."
   }
 }

@@ -152,6 +152,52 @@ Hedef bilgisayardaki iki depolama yolunu `.env` içinde güncelleyin, gerekiyors
 
 Eklenti sayfaları web uygulamasının localStorage alanını okuyamadığı için dil tercihini kendi `chrome.storage.local` alanında saklar.
 
+## Telegram botu
+
+Instagram gönderi bağlantısını özel Telegram botuna göndererek hesabı ve
+fotoğrafları FindDex'e otomatik kaydedebilirsin. Mevcut Instagram hesabına yeni
+fotoğraflar eklenir; notlar, etiketler, koleksiyonlar ve kapak korunur. Aynı
+bağlantı tekrar gönderilirse fotoğraflar çoğaltılmaz. Çöp kutusundaki profiller
+önce FindDex'ten geri yüklenmelidir. Profil bağlantıları scraper desteğine bağlıdır.
+
+1. `docker compose up -d --build` ile FindDex'i başlat.
+2. [@BotFather](https://t.me/BotFather) üzerinden `/newbot` ile ayrı bir bot oluştur.
+3. Node.js 20.6+ ile `npm run telegram:setup` çalıştır. Bota özel FindDex API
+   anahtarı mevcut `.env` dosyasına kaydedilir, ekrana yazılmaz. Alternatif olarak
+   Ayarlar → API Erişimi bölümünden anahtar oluşturup `FINDDEX_BOT_API_KEY` alanını doldur.
+4. `.env` dosyasında `TELEGRAM_BOT_TOKEN`, `INSTAGRAM_SCRAPER_URL` ve
+   `TELEGRAM_BOT_LANGUAGE=tr` değerlerini ayarla. Scraper adresi tam endpoint
+   olmalı: örneğin `http://192.168.1.51:8582/scrape`.
+5. `docker compose --profile telegram up -d --build` ile botu başlat.
+6. Kullanıcı ID'ni bilmiyorsan `TELEGRAM_ALLOWED_USER_ID` boşken bot sohbetinde
+   `/whoami` gönder. Boş ID ile kayıt yapılmaz. Dönen sayıyı `.env` dosyasına
+   `TELEGRAM_ALLOWED_USER_ID` olarak ekle ve
+   `docker compose --profile telegram up -d telegram-bot` ile botu yeniden oluştur.
+
+Bot sadece izinli kullanıcının özel sohbetini işler. `/start` ve `/help` yardım
+gösterir. Mesaj, iletilmiş metin veya fotoğraf açıklamasında en fazla beş bağlantı
+gönderilebilir. İlk gönderi fotoğrafı kapak olur; en fazla 20 gönderi fotoğrafı ve
+profil fotoğrafı kaydedilir. JPG/PNG/WEBP ve dosya başına 5 MB sınırı geçerlidir;
+video dosyaları alınmaz. Fotoğraf indirme başarısızsa kısmi kayıt yapılmaz.
+
+Bot long polling kullanır; FindDex'i internete açmak veya webhook kurmak gerekmez.
+Botun Telegram'a internet erişimi ve FindDex konteynerinin scraper'a erişimi
+olmalıdır. Aynı token ile ikinci worker veya webhook çalıştırma. Mesaj sırası
+`telegram_bot_state` volume'ünde, tekrar kayıt kontrolü SQLite aktivite
+kayıtlarında saklanır. Aktivite kayıtları JSON/ZIP export'a dahildir.
+
+Loglar: `docker compose --profile telegram logs --tail=50 telegram-bot`.
+Durdurma: `docker compose --profile telegram stop telegram-bot`.
+Docker'sız: FindDex çalışırken
+`FINDDEX_SETUP_URL=http://127.0.0.1:3000 npm run telegram:setup` çalıştır;
+`.env` içinde `FINDDEX_INTERNAL_URL=http://127.0.0.1:3000` ayarla ve
+`npm run telegram:bot` kullan. Yerel mesaj durumu `data/telegram-bot/` altında tutulur.
+
+Test: `npm run test:telegram`. Docker karşılığı:
+`docker build --target builder -t finddex-check .` ve
+`docker run --rm finddex-check npm run test:telegram`. Testler dış servisleri
+taklit eder; geçici SQLite/görsel dizinleri kullanır, arşive dokunmaz.
+
 ## Docker olmadan geliştirme
 
 ```bash

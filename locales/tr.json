@@ -89,5 +89,38 @@
     "exportTitle": "Veriyi Dışa Aktar", "importTitle": "Veriyi İçe Aktar", "json": "Yalnızca JSON", "zip": "JSON + yüklenen görseller (ZIP)",
     "selectFile": "JSON veya ZIP dosyası seçin", "merge": "Mevcut verinin üzerine ekle", "replace": "Mevcut veriyi silip yenisiyle değiştir",
     "replaceWarning": "Replace modu içe aktarmadan önce mevcut tüm veriyi kalıcı olarak siler.", "importing": "İçe aktarılıyor…", "exporting": "Dışa aktarılıyor…", "title": "İçe / Dışa Aktarma", "description": "Verilerinizi yedekleyin veya başka bir FindDex kurulumuna taşıyın.", "downloadJson": "JSON indir", "jsonDescription": "Tüm kayıtlar ve ilişkiler.", "downloadZip": "ZIP indir", "zipDescription": "JSON ve yüklenen tüm görseller.", "choose": "JSON veya ZIP seçin", "finddexFile": "FindDex dışa aktarım dosyası", "mergeDescription": "Aynı kullanıcı adı varsa profil güncellenir.", "replaceDescription": "Veritabanındaki tüm mevcut kayıtlar kaldırılır.", "chooseError": "Lütfen bir JSON veya ZIP dosyası seçin.", "importFailed": "İçe aktarma başarısız oldu.", "imported": "{{profiles}} profil ve {{uploads}} görsel içe aktarıldı.", "replaceTitle": "Tüm Mevcut Veriyi Değiştir", "replaceMessage": "Bu işlem mevcut profilleri, platformları, etiketleri ve koleksiyonları kalıcı olarak silip seçtiğiniz yedekle değiştirecek. Devam etmek istiyor musunuz?", "replaceConfirm": "Sil ve İçe Aktar"
+  },
+  "telegramBot": {
+    "help": "Instagram gönderi, reel veya profil bağlantısı gönder. FindDex, hesabı ve fotoğrafları otomatik kaydeder. Telegram kullanıcı ID’ni görmek için /whoami gönder.",
+    "whoami": "Telegram kullanıcı ID’n: {{id}}",
+    "setup": "Kayıt kapalı. Sunucunun .env dosyasına TELEGRAM_ALLOWED_USER_ID={{id}} ekleyip botu yeniden başlat.",
+    "notConfigured": "FindDex API anahtarı eksik. Sunucuda FINDDEX_BOT_API_KEY değerini ayarla.",
+    "invalidUrl": "Geçerli bir Instagram gönderi, reel veya profil bağlantısı gönder.",
+    "tooManyLinks": "Bir mesajda en fazla 5 Instagram bağlantısı gönder.",
+    "connectionError": "FindDex’e ulaşılamadı. Bağlantıyı daha sonra tekrar gönder.",
+    "created": "{{name}} (@{{username}}), {{count}} fotoğrafla kaydedildi.",
+    "updated": "{{name}} (@{{username}}) galerisine {{count}} fotoğraf eklendi. Mevcut notlar ve kapak korundu.",
+    "already_saved": "Zaten kayıtlı: {{name}} (@{{username}}). Tekrar fotoğraf eklenmedi.",
+    "errors": {
+      "UNAUTHORIZED": "FindDex API anahtarı geçersiz veya iptal edilmiş. Sunucuda FINDDEX_BOT_API_KEY değerini güncelle.",
+      "INVALID_INSTAGRAM_URL": "Geçerli bir Instagram gönderi, reel veya profil bağlantısı gönder.",
+      "SCRAPER_NOT_CONFIGURED": "Scraper yapılandırılmamış. Sunucuda INSTAGRAM_SCRAPER_URL değerini ayarla.",
+      "SCRAPER_FAILED": "Scraper bu bağlantıyı okuyamadı. Daha sonra tekrar dene; profil bağlantıları scraper desteği gerektirir.",
+      "INVALID_SCRAPER_RESPONSE": "Scraper eksik veya desteklenmeyen veri döndürdü. Kayıt yapılmadı.",
+      "TOO_MANY_IMAGES": "Bu gönderide 20’den fazla görsel var; içe aktarılamadı.",
+      "NO_IMAGES": "Desteklenen fotoğraf bulunamadı. Kayıt yapılmadı.",
+      "PROFILE_IN_TRASH": "Bu profil çöp kutusunda. Bağlantıyı tekrar göndermeden önce FindDex’te geri yükle.",
+      "AMBIGUOUS_PROFILE": "Bu Instagram hesabıyla eşleşen birden fazla profil var. Önce FindDex’te tekrarları düzenle.",
+      "INSTAGRAM_PLATFORM_MISSING": "FindDex’te Instagram platformu eksik.",
+      "IMAGE_DOWNLOAD_TIMEOUT": "Fotoğraf indirme zaman aşımına uğradı. Kayıt yapılmadı; tekrar dene.",
+      "IMAGE_DOWNLOAD_FAILED": "Fotoğraf indirilemedi. Kayıt yapılmadı; tekrar dene.",
+      "IMAGE_TOO_LARGE": "Bir fotoğraf 5 MB sınırını aşıyor. Kayıt yapılmadı.",
+      "UNSUPPORTED_IMAGE": "Yalnızca JPG, PNG ve WEBP destekleniyor. Kayıt yapılmadı.",
+      "INVALID_IMAGE_URL": "Scraper geçersiz fotoğraf adresi döndürdü. Kayıt yapılmadı.",
+      "IMPORT_FAILED": "Profil kaydedilemedi. Lütfen tekrar dene."
+    },
+    "keyLabel": "Telegram botu",
+    "setupReady": "Telegram API anahtarı ve yapılandırması .env dosyasında hazırlandı. Bot tokenını, izinli kullanıcı ID’sini ve scraper adresini doldurup telegram Compose profilini başlat.",
+    "setupFailed": "Telegram kurulumu başarısız. .env dosyasının mevcut ve yazılabilir olduğunu, FindDex’in FINDDEX_INTERNAL_URL veya APP_PORT adresinde çalıştığını kontrol et."
   }
 }

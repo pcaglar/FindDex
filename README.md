@@ -152,6 +152,74 @@ Update the two storage paths in `.env` for the destination machine, verify permi
 
 The extension stores its own language preference in `chrome.storage.local` because extension pages cannot read the web application's localStorage.
 
+## Telegram bot
+
+Send an Instagram post or reel link to your private Telegram bot to save its
+owner and photos in FindDex. Existing Instagram profiles receive additional
+gallery photos while keeping their notes, tags, collections and cover. Sending
+the same link again does not add duplicate photos. Profiles in Trash must be
+restored manually. Profile links also work if your scraper supports them.
+
+The optional `telegram-bot` Docker service uses long polling. FindDex and the
+scraper can remain on your local network; no public webhook is needed. The bot
+needs outbound access to `api.telegram.org`, and the app container must be able
+to reach your scraper.
+
+1. Start FindDex with `docker compose up -d --build`.
+2. Create a dedicated bot through [@BotFather](https://t.me/BotFather) using
+   `/newbot`. Keep its token private.
+3. Run `npm run telegram:setup` with Node.js 20.6+ to create a dedicated FindDex
+   API key and save it in your existing `.env` without displaying it. Alternatively,
+   create a key under **Settings → API Access** and set `FINDDEX_BOT_API_KEY` yourself.
+4. Set these values in `.env` (do not commit this file):
+
+```dotenv
+INSTAGRAM_SCRAPER_URL=http://192.168.1.51:8582/scrape
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_ALLOWED_USER_ID=
+TELEGRAM_BOT_LANGUAGE=en
+```
+
+`INSTAGRAM_SCRAPER_URL` is the complete `/scrape` endpoint. It must return
+`owner_info.username`, optional owner metadata and `post_info.image_urls` or
+`post_info.full_res_image_url`. Instagram CDN photo URLs must be HTTPS. FindDex
+downloads JPG/PNG/WEBP files immediately and keeps the existing 5 MB per-image
+limit. At most 20 post photos plus the profile picture are imported; the first
+post photo is the initial cover. If any required photo download fails, nothing
+is saved. Video files are not imported.
+
+5. Start the worker:
+
+```bash
+docker compose --profile telegram up -d --build
+docker compose --profile telegram logs --tail=50 telegram-bot
+```
+
+If you do not know your numeric Telegram user ID, leave
+`TELEGRAM_ALLOWED_USER_ID` empty, open the bot chat and send `/whoami`. This setup
+mode permits no imports. Set the returned ID in `.env`, then recreate the worker
+with `docker compose --profile telegram up -d telegram-bot`. Only that user in a
+private chat can import. `/start` and `/help` explain how to use it. Send up to
+five links per message, including forwarded text and photo captions.
+
+Use `TELEGRAM_BOT_LANGUAGE=tr` for Turkish replies. Do not run another polling
+worker or configure a webhook for the same bot. Delivery offsets persist in the
+separate `telegram_bot_state` volume; import deduplication uses activity records
+in SQLite, included in FindDex JSON/ZIP exports. To stop the worker, run
+`docker compose --profile telegram stop telegram-bot`.
+
+Without Docker, run `npm ci` and `npx prisma generate`, then start FindDex normally.
+Run `FINDDEX_SETUP_URL=http://127.0.0.1:3000 npm run telegram:setup` and set
+`FINDDEX_INTERNAL_URL=http://127.0.0.1:3000` in `.env`. Start the worker with
+`npm run telegram:bot`. Its local state directory is `data/telegram-bot/`.
+
+Verification: `npm run test:telegram` runs bot authorization/translation tests and
+API/import integration checks using temporary SQLite and upload directories.
+Docker equivalent: build the `builder` image with
+`docker build --target builder -t finddex-check .`, then run
+`docker run --rm finddex-check npm run test:telegram`. These tests mock external
+services and never write to your archive or contact Telegram.
+
 ## Development without Docker
 
 ```bash

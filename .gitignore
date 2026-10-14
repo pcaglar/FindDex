@@ -1,5 +1,7 @@
 node_modules/
 .next/
+.chrome-extension-cdp/
+.chrome-extension-test/
 .env
 .env.*
 !.env.example
@@ -10,8 +12,12 @@ prisma/dev.db-shm
 public/uploads/*
 !public/uploads/.gitkeep
 data/backups/
+data/telegram-bot/
 data/*.json
 data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
 *.log
 *.tsbuildinfo
 .DS_Store

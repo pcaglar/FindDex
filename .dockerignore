@@ -13,7 +13,15 @@ docker-compose*.yml
 compose*.yml
 README.md
 data/*.json
+data/backups/
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+data/telegram-bot/
 prisma/dev.db
 prisma/dev.db-journal
+prisma/dev.db-wal
+prisma/dev.db-shm
 public/uploads/*
 !public/uploads/.gitkeep
