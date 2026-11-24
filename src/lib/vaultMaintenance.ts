@@ -9,6 +9,7 @@ export async function clearVaultData() {
     if (!deleted) throw new Error(`Profile could not be deleted: ${profile.id}`);
   }
   await prisma.$transaction(async (tx) => {
+    await tx.savedFilter.deleteMany();
     await tx.tag.deleteMany();
     await tx.collection.deleteMany({ where: { name: { notIn: [...SYSTEM_COLLECTION_NAMES] } } });
     await tx.platform.deleteMany({

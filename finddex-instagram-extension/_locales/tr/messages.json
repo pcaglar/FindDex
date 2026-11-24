@@ -1,0 +1,125 @@
+{
+  "subtitle": {
+    "message": "Instagram profili kaydet"
+  },
+  "settings": {
+    "message": "Ayarlar"
+  },
+  "language": {
+    "message": "Language / Dil"
+  },
+  "serverUrl": {
+    "message": "FindDex adresi"
+  },
+  "apiKey": {
+    "message": "API anahtarı"
+  },
+  "saveSettings": {
+    "message": "Ayarları Kaydet"
+  },
+  "keyHint": {
+    "message": "Anahtarı FindDex → Ayarlar → API Erişimi bölümünden oluşturun."
+  },
+  "username": {
+    "message": "Kullanıcı adı"
+  },
+  "displayName": {
+    "message": "Görünen isim"
+  },
+  "avatarUrl": {
+    "message": "Profil fotoğrafı URL'si"
+  },
+  "chooseCover": {
+    "message": "Kapak Fotoğrafı Seç"
+  },
+  "coverHint": {
+    "message": "Profil veya gönderi görseli"
+  },
+  "loadingPosts": {
+    "message": "Gönderiler yükleniyor…"
+  },
+  "selectedCover": {
+    "message": "Seçilen kapak fotoğrafı"
+  },
+  "tags": {
+    "message": "Etiketler"
+  },
+  "notes": {
+    "message": "Not"
+  },
+  "optional": {
+    "message": "Opsiyonel"
+  },
+  "verified": {
+    "message": "Doğrulanmış profil"
+  },
+  "saveToFindDex": {
+    "message": "FindDex'e Kaydet"
+  },
+  "chooseProfile": {
+    "message": "Profil fotoğrafını seç"
+  },
+  "choosePost": {
+    "message": "Gönderi kapağını seç"
+  },
+  "profile": {
+    "message": "Profil"
+  },
+  "openInstagram": {
+    "message": "Bir Instagram profil sayfası açın."
+  },
+  "profileMissing": {
+    "message": "Profil bilgisi bulunamadı. Sayfanın tamamen yüklenmesini bekleyin."
+  },
+  "invalidAddress": {
+    "message": "Geçerli bir FindDex adresi girin."
+  },
+  "permissionDenied": {
+    "message": "FindDex adresi için erişim izni verilmedi."
+  },
+  "settingsSaved": {
+    "message": "Ayarlar kaydedildi."
+  },
+  "saving": {
+    "message": "Profil ve fotoğraf kaydediliyor…"
+  },
+  "saved": {
+    "message": "✓ FindDex’e eklendi"
+  },
+  "saveFailed": {
+    "message": "Profil kaydedilemedi."
+  },
+  "extName": {
+    "message": "FindDex Instagram Kaydedici"
+  },
+  "extDescription": {
+    "message": "Instagram profillerini kendi FindDex kurulumunuza kaydedin."
+  },
+  "extActionTitle": {
+    "message": "FindDex'e Kaydet"
+  },
+  "bio": {
+    "message": "Bio"
+  },
+  "tagsPlaceholder": {
+    "message": "Moda, Instagram"
+  },
+  "errorSetup": {
+    "message": "Önce FindDex adresini ve API anahtarını kaydedin."
+  },
+  "errorInvalidKey": {
+    "message": "API anahtarı geçersiz."
+  },
+  "errorServer": {
+    "message": "Sunucu hatası"
+  },
+  "reasonSAME_USERNAME": {
+    "message": "Aynı kullanıcı adı"
+  },
+  "reasonSAME_URL": {
+    "message": "Aynı profil URL'si"
+  },
+  "reasonSIMILAR_NAME": {
+    "message": "Benzer isim"
+  }
+}

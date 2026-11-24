@@ -132,3 +132,10 @@ model ApiKey {
   createdAt  DateTime  @default(now())
   lastUsedAt DateTime?
 }
+
+model SavedFilter {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  query     String   // JSON: search, tab, tags, tagMode, collection, sort
+  createdAt DateTime @default(now())
+}

@@ -12,6 +12,10 @@ FindDex, gelip geçen bu keşifleri kendi aranabilir hafızanıza dönüştürü
 
 - Çoklu platform bağlantıları, etiketler, koleksiyonlar, notlar ve favoriler içeren profiller
 - Çoklu görsel galerisi, kapak seçimi, kart üzerinde gezinme ve tam ekran lightbox
+- Büyük/küçük harf ve aksan ayırmayan arama, Türkçe harfler dahil (`ipek`, `İpek`'i; `yildiz`, `Yıldız`'ı bulur)
+- Birden fazla etikete göre filtreleme (hepsi veya herhangi biri) ve kenar çubuğundan tekrar uygulanabilen kayıtlı filtreler
+- Toplu işlemler: birçok profili seçip etiketleme, koleksiyona ekleme, favorileme, çöp kutusuna taşıma, geri yükleme veya silme
+- Hızlı ızgara: küçük önizlemeler gerektiğinde üretilir, tıklayınca orijinal görsel açılır
 - Mükerrer kayıt tespiti, soft-delete çöp kutusu ve profil aktivite geçmişi
 - Sunucu taraflı sayfalama ve toplu istatistik paneli
 - Yüklenen görselleri de kapsayan JSON/ZIP içe ve dışa aktarma
@@ -57,6 +61,10 @@ docker compose down
 ```
 
 `docker compose down`, container'ı ve Compose ağını kaldırır ancak kalıcı verilere dokunmaz. Docker tarafından yönetilen volume'ları bilinçli olarak silmek istemediğiniz sürece `docker compose down -v` kullanmayın.
+
+## Görsel önizlemeleri
+
+Izgara, liste ve çöp kutusu, FindDex'in bir görseli ilk gösterişinde ürettiği küçük WebP önizlemelerini kullanır. Önizlemeler yükleme dizini içindeki gizli `.thumbs` klasöründe saklanır, ZIP dışa aktarmalarına ve yedeklere girmez ve istediğiniz zaman silinebilir (gerektiğinde yeniden üretilir). Orijinal dosyaya hiç dokunulmaz ve görsele tıklayınca orijinali açılır. Uzak adresteki ve zaten küçük olan görseller olduğu gibi gösterilir.
 
 ## Depolama yapılandırması
 

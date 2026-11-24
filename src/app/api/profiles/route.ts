@@ -3,13 +3,15 @@ import { getProfilesPage, createProfile } from '@/lib/profileService';
 import { SortOption } from '@/types/profile';
 import { ImageStorageError } from '@/lib/imageStorage';
 import { cleanupDownloadedImages, localizeRemoteProfileImages } from '@/lib/remoteImage';
+import { MAX_FILTER_TAGS } from '@/lib/profileFilters';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || undefined;
     const platformKey = searchParams.get('platform') || undefined;
-    const tag = searchParams.get('tag') || undefined;
+    const tags = searchParams.getAll('tag').map((tag) => tag.trim()).filter(Boolean).slice(0, MAX_FILTER_TAGS);
+    const tagMode = searchParams.get('tagMode') === 'any' ? 'any' : 'all';
     const collection = searchParams.get('collection') || undefined;
     const filter = searchParams.get('filter') || undefined;
     const sort = (searchParams.get('sort') || 'newest') as SortOption;
@@ -22,7 +24,8 @@ export async function GET(request: NextRequest) {
     const result = await getProfilesPage({
       search,
       platformKey,
-      tag,
+      tags,
+      tagMode,
       collection,
       filter,
       sort,

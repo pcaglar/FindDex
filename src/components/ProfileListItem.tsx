@@ -16,6 +16,8 @@ import {
 import { PlatformIcon } from './PlatformIcon';
 import { getTagStyle } from '@/lib/colors';
 import { ProfileLightbox } from './ProfileLightbox';
+import { ThumbImage } from './ThumbImage';
+import { SelectCheckbox } from './SelectCheckbox';
 import { useTranslation } from 'react-i18next';
 import { isWatchLaterCollection, WATCH_LATER_COLLECTION } from '@/lib/systemCollections';
 
@@ -27,6 +29,9 @@ interface ProfileListItemProps {
   onEdit: () => void;
   onDelete: () => void;
   onSelectTag?: (tag: string) => void;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 export function ProfileListItem({
@@ -37,6 +42,9 @@ export function ProfileListItem({
   onEdit,
   onDelete,
   onSelectTag,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
 }: ProfileListItemProps) {
   const { t } = useTranslation();
   const [imageIndex, setImageIndex] = useState(0);
@@ -59,34 +67,37 @@ export function ProfileListItem({
 
   return (
     <div
-      className="group flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-[#111827] border border-[#1f293d] hover:border-pink-500/40 transition shadow-md hover:shadow-pink-500/5 gap-3"
+      className={`group flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-[#111827] border transition shadow-md hover:shadow-pink-500/5 gap-3 ${
+        selected ? 'border-pink-500 ring-2 ring-pink-500/40' : 'border-[#1f293d] hover:border-pink-500/40'
+      }`}
     >
       {/* Left: Avatar + Details */}
       <div className="flex items-center gap-3.5 min-w-0">
+        {selectable && (
+          <SelectCheckbox checked={selected} label={t('bulk.selectProfile', { name: profile.displayName })} onToggle={onToggleSelect} />
+        )}
         <div
           className="relative w-14 h-14 sm:w-16 sm:h-16 cursor-zoom-in rounded-xl overflow-hidden shrink-0 bg-slate-900 border border-slate-800"
           onClick={(event) => {
             event.stopPropagation();
-            setLightboxIndex(imageIndex);
+            if (selectable) onToggleSelect?.(); else setLightboxIndex(imageIndex);
           }}
           role="button"
           tabIndex={0}
-          aria-label={t('profile.openGallery', { name: profile.displayName })}
+          aria-label={selectable ? t('bulk.selectProfile', { name: profile.displayName }) : t('profile.openGallery', { name: profile.displayName })}
           onKeyDown={(event) => {
             if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
               event.preventDefault();
-              setLightboxIndex(imageIndex);
+              if (selectable) onToggleSelect?.(); else setLightboxIndex(imageIndex);
             }
           }}
         >
-          <img
+          <ThumbImage
             src={currentImage.url}
             alt={profile.displayName}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover object-top group-hover:scale-105 transition duration-300"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src =
-                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80';
-            }}
           />
           {galleryImages.length > 1 && (
             <>
@@ -101,14 +112,14 @@ export function ProfileListItem({
 
         <div
           className="min-w-0 flex-1 cursor-pointer rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/70"
-          onClick={onClick}
+          onClick={selectable ? onToggleSelect : onClick}
           role="button"
           tabIndex={0}
-          aria-label={t('profile.openDetails', { name: profile.displayName })}
+          aria-label={selectable ? t('bulk.selectProfile', { name: profile.displayName }) : t('profile.openDetails', { name: profile.displayName })}
           onKeyDown={(event) => {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
-              onClick();
+              if (selectable) onToggleSelect?.(); else onClick();
             }
           }}
         >

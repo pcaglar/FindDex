@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import prisma from '@/lib/prisma';
 import { safeUploadPath, uploadsDirectory } from '@/lib/uploadStorage';
+import { removeThumbnail } from '@/lib/thumbnails';
 
 export async function GET() {
   try {
@@ -35,7 +36,7 @@ export async function DELETE(request: NextRequest) {
         prisma.profileImage.count({ where: { url: { contains: filename } } }),
         prisma.profile.count({ where: { OR: [{ avatarUrl: { contains: filename } }, { coverUrl: { contains: filename } }] } }),
       ]);
-      if (galleryRefs + profileRefs === 0) { await fs.unlink(target).catch((error: any) => { if (error?.code !== 'ENOENT') throw error; }); deleted += 1; }
+      if (galleryRefs + profileRefs === 0) { await fs.unlink(target).catch((error: any) => { if (error?.code !== 'ENOENT') throw error; }); await removeThumbnail(filename); deleted += 1; }
     }
     return NextResponse.json({ success: true, data: { deleted } });
   } catch { return NextResponse.json({ success: false, error: 'The files could not be deleted' }, { status: 500 }); }

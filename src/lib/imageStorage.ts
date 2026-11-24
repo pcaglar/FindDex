@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { safeUploadPath, uploadsDirectory } from '@/lib/uploadStorage';
+import { removeThumbnail } from '@/lib/thumbnails';
 
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -90,4 +91,5 @@ export async function deleteStoredImage(url: string) {
   await fs.unlink(target).catch((error: NodeJS.ErrnoException) => {
     if (error.code !== 'ENOENT') throw error;
   });
+  await removeThumbnail(filename);
 }

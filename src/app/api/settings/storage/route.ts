@@ -10,6 +10,7 @@ async function directoryStats(directory: string): Promise<{ count: number; bytes
     let count = 0, bytes = 0;
     for (const entry of entries) {
       const full = path.join(directory, entry.name);
+      if (entry.name.startsWith('.')) continue; // derived thumbnails (.thumbs)
       if (entry.isDirectory()) { const nested = await directoryStats(full); count += nested.count; bytes += nested.bytes; }
       else if (entry.isFile() && entry.name !== '.gitkeep') { count += 1; bytes += (await fs.stat(full)).size; }
     }

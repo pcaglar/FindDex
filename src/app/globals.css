@@ -131,6 +131,22 @@ body {
   background: rgba(148, 163, 184, 0.4);
 }
 
+/* Firefox ignores the ::-webkit-scrollbar rules above; give it the same slim, dark scrollbars. */
+@supports (-moz-appearance: none) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.38) transparent;
+  }
+}
+
+/* Horizontal tab strips that scroll without a visible bar. */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 .sidebar-sublist {
   max-height: 13.5rem;
   overflow-y: auto;

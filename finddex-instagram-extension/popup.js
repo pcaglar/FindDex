@@ -4,19 +4,13 @@ let selectedCoverUrl = '';
 let selectedCoverKind = 'profile';
 let language = 'en';
 
-const messages = {
-  en: {
-    subtitle: 'Save Instagram profile', settings: 'Settings', language: 'Language / Dil', serverUrl: 'FindDex address', apiKey: 'API key', saveSettings: 'Save Settings', keyHint: 'Create the key in FindDex → Settings → API Access.', username: 'Username', displayName: 'Display name', avatarUrl: 'Profile photo URL', chooseCover: 'Choose Cover Photo', coverHint: 'Profile or post image', loadingPosts: 'Loading posts…', selectedCover: 'Selected cover photo', tags: 'Tags', notes: 'Notes', optional: 'Optional', verified: 'Verified profile', saveToFindDex: 'Save to FindDex', chooseProfile: 'Select profile photo', choosePost: 'Select post cover', profile: 'Profile', openInstagram: 'Open an Instagram profile page.', profileMissing: 'Profile information was not found. Wait until the page fully loads.', invalidAddress: 'Enter a valid FindDex address.', permissionDenied: 'Access permission was not granted for the FindDex address.', settingsSaved: 'Settings saved.', saving: 'Saving profile and photo…', saved: '✓ Added to FindDex', saveFailed: 'Could not save profile.'
-  },
-  tr: {
-    subtitle: 'Instagram profili kaydet', settings: 'Ayarlar', language: 'Language / Dil', serverUrl: 'FindDex adresi', apiKey: 'API anahtarı', saveSettings: 'Ayarları Kaydet', keyHint: 'Anahtarı FindDex → Ayarlar → API Erişimi bölümünden oluşturun.', username: 'Kullanıcı adı', displayName: 'Görünen isim', avatarUrl: "Profil fotoğrafı URL'si", chooseCover: 'Kapak Fotoğrafı Seç', coverHint: 'Profil veya gönderi görseli', loadingPosts: 'Gönderiler yükleniyor…', selectedCover: 'Seçilen kapak fotoğrafı', tags: 'Etiketler', notes: 'Not', optional: 'Opsiyonel', verified: 'Doğrulanmış profil', saveToFindDex: "FindDex'e Kaydet", chooseProfile: 'Profil fotoğrafını seç', choosePost: 'Gönderi kapağını seç', profile: 'Profil', openInstagram: 'Bir Instagram profil sayfası açın.', profileMissing: 'Profil bilgisi bulunamadı. Sayfanın tamamen yüklenmesini bekleyin.', invalidAddress: 'Geçerli bir FindDex adresi girin.', permissionDenied: 'FindDex adresi için erişim izni verilmedi.', settingsSaved: 'Ayarlar kaydedildi.', saving: 'Profil ve fotoğraf kaydediliyor…', saved: '✓ FindDex’e eklendi', saveFailed: 'Profil kaydedilemedi.'
-  },
-};
+// Strings live in _locales/<lang>/messages.json (see i18n.js).
+let translate = (key) => key;
+const tr = (key) => translate(key);
 
-const tr = (key) => messages[language]?.[key] || messages.en[key] || key;
-
-function applyLanguage(nextLanguage) {
+async function applyLanguage(nextLanguage) {
   language = nextLanguage === 'tr' ? 'tr' : 'en';
+  translate = await FindDexI18n.createTranslator(language);
   document.documentElement.lang = language;
   document.querySelectorAll('[data-i18n]').forEach((element) => { element.textContent = tr(element.dataset.i18n); });
   document.querySelectorAll('[data-i18n-title]').forEach((element) => { element.title = tr(element.dataset.i18nTitle); });
@@ -32,7 +26,7 @@ function status(message, type = 'ok') {
 
 async function loadSettings() {
   const saved = await chrome.storage.local.get(['serverUrl', 'apiKey', 'language']);
-  applyLanguage(saved.language || 'en');
+  await applyLanguage(saved.language || 'en');
   $('serverUrl').value = saved.serverUrl || 'http://localhost:12000';
   $('apiKey').value = saved.apiKey || '';
   if (!saved.apiKey) $('settings').classList.remove('hidden');
@@ -120,7 +114,7 @@ $('avatarUrl').addEventListener('input', () => {
 });
 
 $('language').addEventListener('change', async (event) => {
-  applyLanguage(event.target.value);
+  await applyLanguage(event.target.value);
   await chrome.storage.local.set({ language });
 });
 $('toggleSettings').addEventListener('click', () => $('settings').classList.toggle('hidden'));

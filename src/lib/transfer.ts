@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 export const EXPORT_VERSION = 1;
 
 export async function createExportSnapshot() {
-  const [profiles, platforms, platformLinks, tags, profileTags, collections, profileCollections, profileImages, activityLogs] =
+  const [profiles, platforms, platformLinks, tags, profileTags, collections, profileCollections, profileImages, activityLogs, savedFilters] =
     await prisma.$transaction([
       prisma.profile.findMany(),
       prisma.platform.findMany(),
@@ -14,13 +14,14 @@ export async function createExportSnapshot() {
       prisma.profileCollection.findMany(),
       prisma.profileImage.findMany(),
       prisma.activityLog.findMany(),
+      prisma.savedFilter.findMany(),
     ]);
 
   return {
     format: 'finddex-export',
     version: EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
-    data: { profiles, platforms, platformLinks, tags, profileTags, collections, profileCollections, profileImages, activityLogs },
+    data: { profiles, platforms, platformLinks, tags, profileTags, collections, profileCollections, profileImages, activityLogs, savedFilters },
   };
 }
 
@@ -51,6 +52,7 @@ export function assertValidSnapshot(snapshot: any) {
       }));
   }
   if (!Array.isArray(snapshot.data.activityLogs)) snapshot.data.activityLogs = [];
+  if (!Array.isArray(snapshot.data.savedFilters)) snapshot.data.savedFilters = [];
   return snapshot;
 }
 
@@ -72,6 +74,7 @@ export async function importSnapshot(snapshotInput: any, mode: 'merge' | 'replac
       await tx.platform.deleteMany();
       await tx.tag.deleteMany();
       await tx.collection.deleteMany();
+      await tx.savedFilter.deleteMany();
 
       if (source.platforms.length) {
         await tx.platform.createMany({ data: source.platforms.map((item: any) => ({
@@ -144,6 +147,14 @@ export async function importSnapshot(snapshotInput: any, mode: 'merge' | 'replac
           createdAt: dateOrUndefined(item.createdAt),
         })) });
       }
+      if (source.savedFilters.length) {
+        await tx.savedFilter.createMany({ data: source.savedFilters.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          query: typeof item.query === 'string' ? item.query : JSON.stringify(item.query ?? {}),
+          createdAt: dateOrUndefined(item.createdAt),
+        })) });
+      }
       if (source.profileTags.length) {
         await tx.profileTag.createMany({ data: source.profileTags });
       }
@@ -179,6 +190,11 @@ export async function importSnapshot(snapshotInput: any, mode: 'merge' | 'replac
           where: { name: item.name }, update: {}, create: { name: item.name },
         });
         collectionIds.set(item.id, collection.id);
+      }
+
+      for (const item of source.savedFilters) {
+        const query = typeof item.query === 'string' ? item.query : JSON.stringify(item.query ?? {});
+        await tx.savedFilter.upsert({ where: { name: item.name }, update: { query }, create: { name: item.name, query } });
       }
 
       const existingProfiles = await tx.profile.findMany();

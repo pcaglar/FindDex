@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Grid, 
@@ -8,9 +8,13 @@ import {
   ArrowUpDown, 
   Heart, 
   Globe, 
-  X
+  X,
+  CheckSquare,
+  BookmarkPlus
 } from 'lucide-react';
 import { SortOption, PlatformItem } from '@/types/profile';
+import type { TagMode } from '@/lib/profileFilters';
+import { systemCollectionLabelKey } from '@/lib/systemCollections';
 import { PlatformIcon } from './PlatformIcon';
 
 interface FilterBarProps {
@@ -20,10 +24,18 @@ interface FilterBarProps {
   onSortChange: (sort: SortOption) => void;
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
-  activeTag: string | null;
-  onClearTag: () => void;
+  activeTags: string[];
+  tagMode: TagMode;
+  onTagModeChange: (mode: TagMode) => void;
+  onRemoveTag: (tag: string) => void;
   activeCollection: string | null;
   onClearCollection: () => void;
+  hasActiveFilters: boolean;
+  onClearAll: () => void;
+  /** Resolves true when the filter was saved. */
+  onSaveFilter: (name: string) => Promise<boolean>;
+  selectionMode: boolean;
+  onToggleSelectionMode: () => void;
   resultCount: number;
   platforms?: PlatformItem[];
   pageSize: number;
@@ -37,16 +49,37 @@ export function FilterBar({
   onSortChange,
   viewMode,
   onViewModeChange,
-  activeTag,
-  onClearTag,
+  activeTags,
+  tagMode,
+  onTagModeChange,
+  onRemoveTag,
   activeCollection,
   onClearCollection,
+  hasActiveFilters,
+  onClearAll,
+  onSaveFilter,
+  selectionMode,
+  onToggleSelectionMode,
   resultCount,
   platforms = [],
   pageSize,
   onPageSizeChange,
 }: FilterBarProps) {
   const { t } = useTranslation();
+  const [showSave, setShowSave] = useState(false);
+  const [filterName, setFilterName] = useState('');
+  const [saveError, setSaveError] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const submitSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!filterName.trim() || saving) return;
+    setSaving(true);
+    setSaveError(false);
+    const ok = await onSaveFilter(filterName.trim());
+    setSaving(false);
+    if (ok) { setShowSave(false); setFilterName(''); } else setSaveError(true);
+  };
   // Built-in tabs
   const defaultTabs = [
     { key: 'all', label: t('filters.all') },
@@ -133,6 +166,20 @@ export function FilterBar({
             </select>
           </label>
 
+          <button
+            type="button"
+            onClick={onToggleSelectionMode}
+            aria-pressed={selectionMode}
+            className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition ${
+              selectionMode
+                ? 'border-pink-500/50 bg-pink-500/15 text-pink-300'
+                : 'border-[#1f293d] bg-[#111827] text-slate-400 hover:text-white'
+            }`}
+          >
+            <CheckSquare className="h-3.5 w-3.5" />
+            <span>{selectionMode ? t('bulk.done') : t('bulk.select')}</span>
+          </button>
+
           {/* View Toggle */}
           <div className="flex items-center bg-[#111827] border border-[#1f293d] rounded-xl p-0.5">
             <button
@@ -162,26 +209,76 @@ export function FilterBar({
       </div>
 
       {/* Active Filter Chips */}
-      {(activeTag || activeCollection) && (
+      {(activeTags.length > 0 || activeCollection || hasActiveFilters) && (
         <div className="flex items-center gap-2 pt-1 flex-wrap">
           <span className="text-xs text-slate-400 font-medium">{t('filters.active')}</span>
-          {activeTag && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-pink-500/15 text-pink-300 border border-pink-500/30">
-              <span>#{activeTag}</span>
-              <button onClick={onClearTag} className="hover:text-white">
+          {activeTags.map((tag) => (
+            <span key={tag} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-pink-500/15 text-pink-300 border border-pink-500/30">
+              <span>#{tag}</span>
+              <button onClick={() => onRemoveTag(tag)} className="hover:text-white" aria-label={t('filters.removeTag', { name: tag })}>
                 <X className="w-3 h-3" />
               </button>
             </span>
+          ))}
+          {activeTags.length > 1 && (
+            <div className="flex items-center rounded-lg border border-[#1f293d] bg-[#111827] p-0.5 text-[11px]" role="group" aria-label={t('filters.tagMode')}>
+              {(['all', 'any'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => onTagModeChange(mode)}
+                  aria-pressed={tagMode === mode}
+                  className={`rounded-md px-2 py-0.5 font-semibold transition ${tagMode === mode ? 'bg-pink-500/25 text-pink-200' : 'text-slate-400 hover:text-white'}`}
+                >
+                  {mode === 'all' ? t('filters.matchAll') : t('filters.matchAny')}
+                </button>
+              ))}
+            </div>
           )}
           {activeCollection && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-purple-500/15 text-purple-300 border border-purple-500/30">
-              <span>📁 {activeCollection}</span>
-              <button onClick={onClearCollection} className="hover:text-white">
+              <span>📁 {systemCollectionLabelKey(activeCollection) ? t(systemCollectionLabelKey(activeCollection)!) : activeCollection}</span>
+              <button onClick={onClearCollection} className="hover:text-white" aria-label={t('common.remove')}>
                 <X className="w-3 h-3" />
               </button>
             </span>
           )}
+          {hasActiveFilters && (
+            <>
+              <button type="button" onClick={onClearAll} className="text-xs font-medium text-slate-400 underline-offset-2 hover:text-white hover:underline">
+                {t('filters.clearAll')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSave((current) => !current)}
+                aria-expanded={showSave}
+                className="inline-flex items-center gap-1 rounded-lg border border-[#1f293d] bg-[#111827] px-2 py-1 text-xs font-semibold text-slate-300 hover:text-white"
+              >
+                <BookmarkPlus className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{t('savedFilters.save')}</span>
+              </button>
+            </>
+          )}
         </div>
+      )}
+
+      {showSave && hasActiveFilters && (
+        <form onSubmit={submitSave} className="flex flex-wrap items-center gap-2 pt-1">
+          <input
+            autoFocus
+            value={filterName}
+            onChange={(event) => { setFilterName(event.target.value); setSaveError(false); }}
+            maxLength={60}
+            placeholder={t('savedFilters.namePlaceholder')}
+            aria-label={t('savedFilters.namePlaceholder')}
+            className="w-56 rounded-lg border border-[#1f293d] bg-[#151c2e] px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-pink-500 focus:outline-none"
+          />
+          <button type="submit" disabled={!filterName.trim() || saving} className="rounded-lg bg-pink-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-pink-600 disabled:opacity-50">
+            {t('common.save')}
+          </button>
+          <button type="button" onClick={() => setShowSave(false)} className="rounded-lg px-2 py-1.5 text-xs text-slate-400 hover:text-white">{t('common.cancel')}</button>
+          <span className={`text-[11px] ${saveError ? 'text-rose-400' : 'text-slate-500'}`}>{saveError ? t('savedFilters.failed') : t('savedFilters.replaceHint')}</span>
+        </form>
       )}
     </div>
   );

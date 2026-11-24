@@ -26,6 +26,7 @@ import {
 import { PlatformIcon } from './PlatformIcon';
 import { getTagStyle } from '@/lib/colors';
 import { useTranslation } from 'react-i18next';
+import { ThumbImage } from './ThumbImage';
 import { isWatchLaterCollection, systemCollectionLabelKey, WATCH_LATER_COLLECTION } from '@/lib/systemCollections';
 import { currentLanguage, formatDate as localizeDate, formatDateTime as localizeDateTime } from '@/i18n/format';
 
@@ -286,7 +287,7 @@ export function ProfileDetailPanel({
                       onClick={() => setCurrentImageIndex(index)}
                       className={`w-12 h-12 rounded-lg overflow-hidden border-2 shrink-0 ${index === currentImageIndex ? 'border-pink-500' : 'border-white/30 opacity-75 hover:opacity-100'}`}
                     >
-                      <img src={image.url} alt={`${profile.displayName} ${index + 1}`} className="w-full h-full object-cover" />
+                      <ThumbImage src={image.url} alt={`${profile.displayName} ${index + 1}`} placeholder={false} className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>

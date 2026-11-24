@@ -7,11 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const tags = await prisma.tag.findMany({
-      include: {
-        profiles: {
-          select: { profileId: true },
-        },
-      },
+      include: { _count: { select: { profiles: true } } },
       orderBy: { name: 'asc' },
     });
 
@@ -19,7 +15,7 @@ export async function GET() {
       id: tag.id,
       name: tag.name,
       color: tag.color,
-      count: tag.profiles.length,
+      count: tag._count.profiles,
     }));
 
     return NextResponse.json({ success: true, data: result });

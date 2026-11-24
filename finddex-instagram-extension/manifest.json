@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "FindDex Instagram Kaydedici",
-  "version": "1.1.0",
-  "description": "Save Instagram profiles to your personal FindDex installation.",
+  "name": "__MSG_extName__",
+  "default_locale": "en",
+  "version": "1.2.0",
+  "description": "__MSG_extDescription__",
   "permissions": ["storage", "activeTab"],
   "host_permissions": ["*://www.instagram.com/*"],
   "optional_host_permissions": ["http://*/*", "https://*/*"],
@@ -15,7 +16,7 @@
     }
   ],
   "action": {
-    "default_title": "Save to FindDex",
+    "default_title": "__MSG_extActionTitle__",
     "default_popup": "popup.html",
     "default_icon": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
   },

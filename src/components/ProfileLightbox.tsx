@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { ProfileImageItem } from '@/types/profile';
 import { useTranslation } from 'react-i18next';
+import { ThumbImage } from './ThumbImage';
 
 interface ProfileLightboxProps {
   images: ProfileImageItem[];
@@ -110,7 +111,7 @@ export function ProfileLightbox({ images, initialIndex, profileName, onClose }: 
                 }`}
                 aria-label={t('profile.showPhoto', { number: thumbnailIndex + 1 })}
               >
-                <img src={image.url} alt="" className="h-full w-full object-cover" />
+                <ThumbImage src={image.url} alt="" placeholder={false} className="h-full w-full object-cover" />
               </button>
             ))}
           </div>

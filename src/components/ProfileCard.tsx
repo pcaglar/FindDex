@@ -19,6 +19,8 @@ import {
 import { PlatformIcon } from './PlatformIcon';
 import { getTagStyle, PLATFORM_INFO } from '@/lib/colors';
 import { ProfileLightbox } from './ProfileLightbox';
+import { ThumbImage } from './ThumbImage';
+import { SelectCheckbox } from './SelectCheckbox';
 import { useTranslation } from 'react-i18next';
 import { isWatchLaterCollection, WATCH_LATER_COLLECTION } from '@/lib/systemCollections';
 
@@ -30,6 +32,10 @@ interface ProfileCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onSelectTag?: (tag: string) => void;
+  /** Bulk-selection mode: clicking the card toggles selection instead of opening it. */
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 export function ProfileCard({
@@ -40,6 +46,9 @@ export function ProfileCard({
   onEdit,
   onDelete,
   onSelectTag,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
 }: ProfileCardProps) {
   const { t } = useTranslation();
   const [showMenu, setShowMenu] = useState(false);
@@ -85,35 +94,38 @@ export function ProfileCard({
 
   return (
     <div
-      className="group relative flex flex-col rounded-2xl bg-[#111827] border border-[#1f293d] hover:border-pink-500/40 transition-all duration-200 overflow-hidden shadow-lg hover:shadow-pink-500/10"
+      className={`group relative flex flex-col rounded-2xl bg-[#111827] border transition-all duration-200 overflow-hidden shadow-lg hover:shadow-pink-500/10 ${
+        selected ? 'border-pink-500 ring-2 ring-pink-500/40' : 'border-[#1f293d] hover:border-pink-500/40'
+      }`}
     >
       {/* Top Cover Image Area */}
       <div
         className="relative aspect-[4/5] sm:aspect-[4/4.5] w-full cursor-zoom-in overflow-hidden bg-slate-900"
         onClick={(event) => {
           event.stopPropagation();
-          setLightboxIndex(imageIndex);
+          if (selectable) onToggleSelect?.(); else setLightboxIndex(imageIndex);
         }}
         role="button"
         tabIndex={0}
-        aria-label={t('profile.openGallery', { name: profile.displayName })}
+        aria-label={selectable ? t('bulk.selectProfile', { name: profile.displayName }) : t('profile.openGallery', { name: profile.displayName })}
         onKeyDown={(event) => {
           if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
             event.preventDefault();
-            setLightboxIndex(imageIndex);
+            if (selectable) onToggleSelect?.(); else setLightboxIndex(imageIndex);
           }
         }}
       >
-        <img
+        {/* Grid shows a small preview; the lightbox opens the full-size original. */}
+        <ThumbImage
           src={currentImage.url}
           alt={profile.displayName}
           loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80';
-          }}
         />
+        {selectable && (
+          <SelectCheckbox checked={selected} label={t('bulk.selectProfile', { name: profile.displayName })} className="absolute top-3 left-3 z-20" />
+        )}
 
         {/* Gradient shadow overlay for text legibility */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-transparent to-black/40 opacity-80" />
@@ -164,7 +176,7 @@ export function ProfileCard({
 
         {/* Top-Left Website Indicator */}
         {hasWebsite && primaryKey !== 'website' && (
-          <div className="absolute top-3 left-3 z-10">
+          <div className={`absolute top-3 z-10 ${selectable ? 'left-12' : 'left-3'}`}>
             <span
               title={t('profile.websiteAvailable')}
               className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-black/60 text-cyan-300 border border-cyan-500/30 backdrop-blur-md"
@@ -194,14 +206,14 @@ export function ProfileCard({
       {/* Card Content & Tags */}
       <div
         className="p-3.5 flex-1 flex cursor-pointer flex-col justify-between space-y-2.5"
-        onClick={onClick}
+        onClick={selectable ? onToggleSelect : onClick}
         role="button"
         tabIndex={0}
-        aria-label={t('profile.openDetails', { name: profile.displayName })}
+        aria-label={selectable ? t('bulk.selectProfile', { name: profile.displayName }) : t('profile.openDetails', { name: profile.displayName })}
         onKeyDown={(event) => {
           if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
             event.preventDefault();
-            onClick();
+            if (selectable) onToggleSelect?.(); else onClick();
           }
         }}
       >

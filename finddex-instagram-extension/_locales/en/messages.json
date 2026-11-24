@@ -1,0 +1,125 @@
+{
+  "subtitle": {
+    "message": "Save Instagram profile"
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "language": {
+    "message": "Language / Dil"
+  },
+  "serverUrl": {
+    "message": "FindDex address"
+  },
+  "apiKey": {
+    "message": "API key"
+  },
+  "saveSettings": {
+    "message": "Save Settings"
+  },
+  "keyHint": {
+    "message": "Create the key in FindDex → Settings → API Access."
+  },
+  "username": {
+    "message": "Username"
+  },
+  "displayName": {
+    "message": "Display name"
+  },
+  "avatarUrl": {
+    "message": "Profile photo URL"
+  },
+  "chooseCover": {
+    "message": "Choose Cover Photo"
+  },
+  "coverHint": {
+    "message": "Profile or post image"
+  },
+  "loadingPosts": {
+    "message": "Loading posts…"
+  },
+  "selectedCover": {
+    "message": "Selected cover photo"
+  },
+  "tags": {
+    "message": "Tags"
+  },
+  "notes": {
+    "message": "Notes"
+  },
+  "optional": {
+    "message": "Optional"
+  },
+  "verified": {
+    "message": "Verified profile"
+  },
+  "saveToFindDex": {
+    "message": "Save to FindDex"
+  },
+  "chooseProfile": {
+    "message": "Select profile photo"
+  },
+  "choosePost": {
+    "message": "Select post cover"
+  },
+  "profile": {
+    "message": "Profile"
+  },
+  "openInstagram": {
+    "message": "Open an Instagram profile page."
+  },
+  "profileMissing": {
+    "message": "Profile information was not found. Wait until the page fully loads."
+  },
+  "invalidAddress": {
+    "message": "Enter a valid FindDex address."
+  },
+  "permissionDenied": {
+    "message": "Access permission was not granted for the FindDex address."
+  },
+  "settingsSaved": {
+    "message": "Settings saved."
+  },
+  "saving": {
+    "message": "Saving profile and photo…"
+  },
+  "saved": {
+    "message": "✓ Added to FindDex"
+  },
+  "saveFailed": {
+    "message": "Could not save profile."
+  },
+  "extName": {
+    "message": "FindDex Instagram Saver"
+  },
+  "extDescription": {
+    "message": "Save Instagram profiles to your personal FindDex installation."
+  },
+  "extActionTitle": {
+    "message": "Save to FindDex"
+  },
+  "bio": {
+    "message": "Bio"
+  },
+  "tagsPlaceholder": {
+    "message": "Fashion, Instagram"
+  },
+  "errorSetup": {
+    "message": "Save the FindDex address and API key first."
+  },
+  "errorInvalidKey": {
+    "message": "The API key is invalid."
+  },
+  "errorServer": {
+    "message": "Server error"
+  },
+  "reasonSAME_USERNAME": {
+    "message": "Same username"
+  },
+  "reasonSAME_URL": {
+    "message": "Same profile URL"
+  },
+  "reasonSIMILAR_NAME": {
+    "message": "Similar name"
+  }
+}

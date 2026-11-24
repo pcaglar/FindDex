@@ -11,7 +11,7 @@ async function addDirectoryToZip(zip: JSZip, directory: string, prefix: string) 
   try {
     const entries = await fs.readdir(directory, { withFileTypes: true });
     for (const entry of entries) {
-      if (entry.name === '.gitkeep') continue;
+      if (entry.name === '.gitkeep' || entry.name === '.thumbs') continue;
       const fullPath = path.join(directory, entry.name);
       const zipPath = `${prefix}/${entry.name}`;
       if (entry.isDirectory()) await addDirectoryToZip(zip, fullPath, zipPath);

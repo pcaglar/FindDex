@@ -169,6 +169,158 @@ async function main() {
     assert.equal(safety.format, 'finddex-export');
     assert.ok(!(await list(directory)).includes('escape.png'));
     console.log('PASS: export/import honour UPLOADS_DIR and replace imports keep a safety copy');
+
+    // ---- 0.3.0 features: start from a clean archive -----------------------------------------
+    const { foldText, foldSql } = await import('../src/lib/textFold');
+    const bulk = await import('../src/lib/bulkService');
+    const savedFilters = await import('../src/lib/savedFilters');
+    const resetArchive = async () => {
+      await prisma.profile.deleteMany();
+      await prisma.tag.deleteMany();
+      await prisma.collection.deleteMany({ where: { name: { notIn: ['Favoriler', 'Sonra Bak'] } } });
+      await prisma.savedFilter.deleteMany();
+    };
+    await resetArchive();
+    const make = (username: string, displayName: string, extra: Record<string, unknown> = {}) =>
+      service.createProfile({ username, displayName, avatarUrl: '/api/uploads/fd_x.png', platformLinks: [{ platformKey: 'instagram', url: `https://instagram.com/${username}` }], ...extra } as Parameters<typeof service.createProfile>[0]);
+
+    // 10. JS and SQL folding agree, and Turkish search ignores case/diacritics -----------------
+    const samples = ['İSTANBUL ığdır', 'ÇAĞRI Şükrü Öztürk', 'ÉLÉNA Zoë', 'Straße Œuvre', 'ŁÓDŹ Ñandú', 'Дом ДОМ', 'plain ASCII Text', "O'Brien 100%", ''];
+    for (const sample of samples) {
+      const [row] = await prisma.$queryRawUnsafe<{ v: string }[]>(`SELECT ${foldSql('?')} AS v`, sample);
+      assert.equal(row.v, foldText(sample), `fold mismatch for "${sample}"`);
+    }
+    assert.equal(foldText('İpek'), foldText('IPEK'));
+    assert.equal(foldText('ıpek'), foldText('İPEK'));
+    await make('ipek_y', 'İpek Yıldız', { bio: 'İstanbul doğumlu', tags: ['Türkiye', 'Moda'] });
+    await make('cagri', 'Çağrı Şahin', { notes: 'Öğretmen', tags: ['Türkiye'] });
+    await make('elena', 'Elena Rose', { tags: ['Moda', 'Europe'] });
+    const trashedMatch = await make('ipek_gone', 'İpek Gone');
+    await service.softDeleteProfile(trashedMatch.id);
+    const names = async (search: string) => (await service.getProfilesPage({ search, page: 1, pageSize: 50 })).profiles.map((item) => item.username).sort();
+    assert.deepEqual(await names('ipek'), ['ipek_y']);
+    assert.deepEqual(await names('IPEK'), ['ipek_y']);
+    assert.deepEqual(await names('İPEK'), ['ipek_y']);
+    assert.deepEqual(await names('yildiz'), ['ipek_y']);
+    assert.deepEqual(await names('ISTANBUL'), ['ipek_y'], 'bio match');
+    assert.deepEqual(await names('turkiye'), ['cagri', 'ipek_y'], 'tag match, diacritics folded');
+    assert.deepEqual(await names('sahin cagri'), ['cagri'], 'terms are ANDed in any order');
+    assert.deepEqual(await names('ogretmen'), ['cagri'], 'notes match');
+    assert.deepEqual(await names('instagram.com/elena'), ['elena'], 'link URL match');
+    assert.deepEqual(await names('ipek elena'), [], 'every term must match');
+    assert.deepEqual(await names('100%'), [], 'wildcard characters are literal');
+    assert.equal((await service.getProfilesPage({ search: 'ipek', includeDeleted: true, page: 1, pageSize: 10 })).profiles[0].username, 'ipek_gone');
+    console.log('PASS: Turkish/accent-insensitive search (JS and SQL folding agree)');
+
+    // 11. Multi-tag filters ------------------------------------------------------------------
+    const tagged = async (tags: string[], tagMode: 'all' | 'any') => (await service.getProfilesPage({ tags, tagMode, page: 1, pageSize: 50 })).profiles.map((item) => item.username).sort();
+    assert.deepEqual(await tagged(['Türkiye', 'Moda'], 'all'), ['ipek_y']);
+    assert.deepEqual(await tagged(['Türkiye', 'Moda'], 'any'), ['cagri', 'elena', 'ipek_y']);
+    assert.deepEqual(await tagged(['Europe'], 'all'), ['elena']);
+    assert.deepEqual(await tagged(['Nope'], 'any'), []);
+    const later = await prisma.collection.findUniqueOrThrow({ where: { name: 'Sonra Bak' } });
+    const cagriId = (await prisma.profile.findFirstOrThrow({ where: { username: 'cagri' } })).id;
+    await prisma.profileCollection.create({ data: { profileId: cagriId, collectionId: later.id } });
+    const combined = await service.getProfilesPage({ filter: 'later', tags: ['Türkiye'], search: 'cagri', page: 1, pageSize: 10 });
+    assert.deepEqual(combined.profiles.map((item) => item.username), ['cagri'], 'search, tags and watch-later combine');
+    console.log('PASS: multi-tag filters (all/any) combine with search and collections');
+
+    // 12. Stats are aggregated in SQL and agree with the data ---------------------------------
+    const stats = await service.getStats();
+    assert.equal(stats.total, 3);
+    assert.equal(stats.trashCount, 1);
+    assert.equal(stats.later, 1);
+    assert.equal(stats.platforms.instagram, 3);
+    assert.deepEqual({ Türkiye: stats.tags['Türkiye'], Moda: stats.tags['Moda'], Europe: stats.tags['Europe'] }, { Türkiye: 2, Moda: 2, Europe: 1 });
+    assert.equal(stats.collections['Sonra Bak'], 1);
+    console.log('PASS: getStats aggregates without loading profiles');
+
+    // 13. Bulk actions --------------------------------------------------------------------------
+    const all = await prisma.profile.findMany({ where: { deletedAt: null }, select: { id: true, username: true } });
+    const ids = all.map((item) => item.id);
+    await assert.rejects(async () => bulk.parseBulkIds([]), bulk.BulkInputError);
+    await assert.rejects(async () => bulk.parseBulkIds(Array.from({ length: 501 }, (_, index) => `id${index}`)), bulk.BulkInputError);
+    await assert.rejects(bulk.bulkUpdateProfiles({ ids, action: 'addTags', tags: [] }), bulk.BulkInputError);
+    await assert.rejects(bulk.bulkUpdateProfiles({ ids, action: 'explode' as never }), bulk.BulkInputError);
+    assert.equal((await bulk.bulkUpdateProfiles({ ids: [...ids, trashedMatch.id, 'missing'], action: 'addTags', tags: ['Bulk', ' Moda '] })).affected, 3, 'trashed and unknown ids are ignored');
+    assert.deepEqual(await tagged(['Bulk'], 'all'), ['cagri', 'elena', 'ipek_y']);
+    assert.equal((await bulk.bulkUpdateProfiles({ ids, action: 'addTags', tags: ['Bulk'] })).affected, 0, 'adding an existing tag changes nothing');
+    assert.equal((await bulk.bulkUpdateProfiles({ ids, action: 'removeTags', tags: ['Bulk', 'Missing'] })).affected, 3);
+    assert.deepEqual(await tagged(['Bulk'], 'any'), []);
+    assert.equal((await bulk.bulkUpdateProfiles({ ids, action: 'addCollections', collections: ['Batch'] })).affected, 3);
+    assert.equal((await bulk.bulkUpdateProfiles({ ids: [ids[0]], action: 'removeCollections', collections: ['Batch'] })).affected, 1);
+    assert.equal((await service.getProfilesPage({ collection: 'Batch', page: 1, pageSize: 10 })).total, 2);
+    assert.equal((await bulk.bulkUpdateProfiles({ ids, action: 'favorite' })).affected, 3);
+    assert.equal((await bulk.bulkUpdateProfiles({ ids, action: 'favorite' })).affected, 0);
+    assert.equal((await bulk.bulkUpdateProfiles({ ids: [ids[0]], action: 'unfavorite' })).affected, 1);
+    const bulkLogs = await prisma.activityLog.findMany({ where: { profileId: ids[0] }, select: { action: true } });
+    for (const action of ['TAG_ADDED', 'TAG_REMOVED', 'COLLECTION_ADDED', 'COLLECTION_REMOVED', 'FAVORITED', 'UNFAVORITED']) {
+      assert.ok(bulkLogs.some((log) => log.action === action), `activity log ${action}`);
+    }
+    assert.equal((await bulk.bulkUpdateProfiles({ ids: ids.slice(0, 2), action: 'trash' })).affected, 2);
+    assert.equal((await prisma.profile.count({ where: { deletedAt: null } })), 1);
+    assert.equal((await bulk.bulkRestoreProfiles([...ids.slice(0, 2), 'missing'])).affected, 2);
+    assert.equal((await bulk.bulkUpdateProfiles({ ids: ids.slice(0, 2), action: 'trash' })).affected, 2);
+    assert.equal((await bulk.bulkDeleteTrashedProfiles([...ids, 'missing'])).affected, 2, 'only trashed profiles are deleted permanently');
+    assert.equal(await prisma.profile.count({ where: { id: { in: ids } } }), 1, 'the still-active profile survives');
+    console.log('PASS: bulk tag/collection/favorite/trash/restore/delete actions');
+
+    // 14. Saved filters -------------------------------------------------------------------------
+    const saved = await savedFilters.saveFilter('Türkiye + Moda', { search: ' ipek ', tab: 'instagram', tags: ['Türkiye', 'Moda', 'Moda', ''], tagMode: 'any', collection: 'Batch', sort: 'bogus' });
+    assert.deepEqual(saved.filters, { search: 'ipek', tab: 'instagram', tags: ['Türkiye', 'Moda'], tagMode: 'any', collection: 'Batch', sort: 'newest' });
+    const again = await savedFilters.saveFilter('Türkiye + Moda', { tags: ['Europe'] });
+    assert.equal(again.id, saved.id, 'saving under the same name replaces it');
+    assert.deepEqual((await savedFilters.listSavedFilters()).map((item) => item.filters.tags), [['Europe']]);
+    await assert.rejects(savedFilters.saveFilter('   ', {}), savedFilters.SavedFilterInputError);
+    const snapshotData = (await (await exportRoute.GET(new NextRequest('http://localhost/api/export?format=json'))).json()).data;
+    assert.equal(snapshotData.savedFilters.length, 1, 'exports include saved filters');
+    await prisma.savedFilter.deleteMany();
+    const { importSnapshot } = await import('../src/lib/transfer');
+    await importSnapshot({ format: 'finddex-export', data: snapshotData }, 'merge');
+    assert.equal(await prisma.savedFilter.count(), 1, 'merge import restores saved filters');
+    await importSnapshot({ format: 'finddex-export', data: snapshotData }, 'replace');
+    assert.equal(await prisma.savedFilter.count(), 1, 'replace import restores saved filters');
+    const { clearVaultData } = await import('../src/lib/vaultMaintenance');
+    await clearVaultData();
+    assert.equal(await prisma.savedFilter.count(), 0, 'reset removes saved filters');
+    assert.equal(await savedFilters.deleteSavedFilter('missing'), false);
+    console.log('PASS: saved filters sanitize, upsert by name, export/import and reset');
+
+    // 15. Thumbnails ------------------------------------------------------------------------------
+    const sharp = (await import('sharp')).default;
+    const { uploadsDirectory } = await import('../src/lib/uploadStorage');
+    const { getThumbnail } = await import('../src/lib/thumbnails');
+    const { deleteStoredImage } = await import('../src/lib/imageStorage');
+    const uploadsRoute = await import('../src/app/api/uploads/[filename]/route');
+    const noise = Buffer.alloc(2000 * 1500 * 3);
+    for (let index = 0; index < noise.length; index += 1) noise[index] = (index * 7919) % 251;
+    const big = await sharp(noise, { raw: { width: 2000, height: 1500, channels: 3 } }).jpeg({ quality: 90 }).toBuffer();
+    await writeFile(path.join(uploadsDirectory, 'fd_big.jpg'), big);
+    await writeFile(path.join(uploadsDirectory, 'fd_tiny.png'), png);
+    const fetchUpload = (name: string, query = '') => uploadsRoute.GET(new Request(`http://localhost/api/uploads/${name}${query}`), { params: { filename: name } });
+    const original = await fetchUpload('fd_big.jpg');
+    assert.equal(original.headers.get('content-type'), 'image/jpeg');
+    assert.deepEqual(Buffer.from(await original.arrayBuffer()), big, 'without ?thumb=1 the original is served untouched');
+    const thumb = await fetchUpload('fd_big.jpg', '?thumb=1');
+    assert.equal(thumb.headers.get('content-type'), 'image/webp');
+    const thumbBytes = Buffer.from(await thumb.arrayBuffer());
+    const thumbMeta = await sharp(thumbBytes).metadata();
+    assert.equal(thumbMeta.width, 640);
+    assert.equal(thumbMeta.height, 480, 'aspect ratio is preserved');
+    assert.ok(thumbBytes.length < big.length / 3, `thumbnail ${thumbBytes.length} should be far smaller than ${big.length}`);
+    assert.deepEqual(await readdir(path.join(uploadsDirectory, '.thumbs')), ['fd_big.webp']);
+    assert.equal((await Promise.all([getThumbnail('fd_big.jpg', path.join(uploadsDirectory, 'fd_big.jpg')), getThumbnail('fd_big.jpg', path.join(uploadsDirectory, 'fd_big.jpg'))])).every((item) => item?.contentType === 'image/webp'), true);
+    const tiny = await fetchUpload('fd_tiny.png', '?thumb=1');
+    assert.equal(tiny.headers.get('content-type'), 'image/png', 'small originals are served as they are');
+    assert.equal((await fetchUpload('missing.png', '?thumb=1')).status, 404);
+    assert.equal((await fetchUpload('..%2Fpasswd', '?thumb=1')).status, 400);
+    const zipWithThumbs = await JSZip.loadAsync(await (await exportRoute.GET(new NextRequest('http://localhost/api/export?format=zip'))).arrayBuffer());
+    assert.ok(zipWithThumbs.file('uploads/fd_big.jpg') && !Object.keys(zipWithThumbs.files).some((name) => name.includes('.thumbs')), 'archives contain originals only');
+    const orphansWithThumbs = (await (await orphans.GET()).json()).data.map((item: { name: string }) => item.name).sort();
+    assert.deepEqual(orphansWithThumbs, ['fd_big.jpg', 'fd_new.png', 'fd_tiny.png'], 'the .thumbs folder is never reported as orphans');
+    await deleteStoredImage('/api/uploads/fd_big.jpg');
+    assert.deepEqual(await list(path.join(uploadsDirectory, '.thumbs')), [], 'deleting an image removes its thumbnail');
+    console.log('PASS: thumbnails are generated lazily, cached, excluded from archives and cleaned up');
   } finally {
     globalThis.fetch = originalFetch;
     if (disconnect) await disconnect();

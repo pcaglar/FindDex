@@ -6,6 +6,8 @@ import path from 'path';
 import { safeUploadPath } from './uploadStorage';
 import { getAppSettings } from './appSettings';
 import { isWatchLaterCollection, WATCH_LATER_ALIASES } from './systemCollections';
+import { findSearchMatchIds } from './profileSearch';
+import { removeThumbnail } from './thumbnails';
 
 export function formatProfile(p: any): Profile {
   const platformLinks: PlatformLinkItem[] = (p.platformLinks || []).map((pl: any) => ({
@@ -64,117 +66,46 @@ type ProfileQueryOptions = {
   includeDeleted?: boolean;
   search?: string;
   platformKey?: string;
+  /** Legacy single tag; merged into `tags`. */
   tag?: string;
+  tags?: string[];
+  /** 'all' (default): profile has every tag. 'any': at least one. */
+  tagMode?: 'all' | 'any';
   collection?: string;
   filter?: string;
   sort?: SortOption;
 };
 
-function buildProfileWhere(options: ProfileQueryOptions) {
-  const {
-    includeDeleted = false,
-    search,
-    platformKey,
-    tag,
-    collection,
-    filter,
-  } = options;
+async function buildProfileWhere(options: ProfileQueryOptions) {
+  const { includeDeleted = false, search, platformKey, collection, filter } = options;
+  const tags = Array.from(new Set([...(options.tags || []), ...(options.tag ? [options.tag] : [])].map((tag) => tag.trim()).filter(Boolean)));
 
-  const where: any = {};
+  // Conditions are combined with AND so that e.g. the watch-later filter and a collection can both apply.
+  const conditions: Record<string, unknown>[] = [{ deletedAt: includeDeleted ? { not: null } : null }];
 
-  if (!includeDeleted) {
-    where.deletedAt = null;
-  } else {
-    where.deletedAt = { not: null };
-  }
-
-  if (filter === 'favorites') {
-    where.isFavorite = true;
-  }
-
+  if (filter === 'favorites') conditions.push({ isFavorite: true });
   if (platformKey && platformKey !== 'all') {
-    where.platformLinks = {
-      some: {
-        platform: {
-          key: platformKey,
-        },
-      },
-    };
+    conditions.push({ platformLinks: { some: { platform: { key: platformKey } } } });
   }
-
-  if (tag) {
-    where.tags = {
-      some: {
-        tag: {
-          name: {
-            equals: tag,
-          },
-        },
-      },
-    };
+  if (tags.length) {
+    if (options.tagMode === 'any') {
+      conditions.push({ tags: { some: { tag: { name: { in: tags } } } } });
+    } else {
+      tags.forEach((name) => conditions.push({ tags: { some: { tag: { name } } } }));
+    }
   }
-
-  if (collection) {
-    where.collections = {
-      some: {
-        collection: {
-          name: {
-            equals: collection,
-          },
-        },
-      },
-    };
-  }
-
+  if (collection) conditions.push({ collections: { some: { collection: { name: { equals: collection } } } } });
   if (filter === 'later') {
-    where.collections = {
-      some: {
-        collection: {
-          name: {
-            in: WATCH_LATER_ALIASES,
-          },
-        },
-      },
-    };
+    conditions.push({ collections: { some: { collection: { name: { in: WATCH_LATER_ALIASES } } } } });
   }
-
   if (filter === 'hasWebsite') {
-    where.platformLinks = {
-      some: {
-        platform: {
-          key: 'website',
-        },
-      },
-    };
+    conditions.push({ platformLinks: { some: { platform: { key: 'website' } } } });
   }
-
   if (search && search.trim()) {
-    const q = search.trim();
-    where.OR = [
-      { username: { contains: q } },
-      { displayName: { contains: q } },
-      { bio: { contains: q } },
-      { notes: { contains: q } },
-      {
-        tags: {
-          some: {
-            tag: {
-              name: { contains: q },
-            },
-          },
-        },
-      },
-      {
-        platformLinks: {
-          some: {
-            url: { contains: q },
-          },
-        },
-      },
-    ];
+    conditions.push({ id: { in: await findSearchMatchIds(search, includeDeleted) } });
   }
 
-  return where;
+  return { AND: conditions };
 }
 
 function buildProfileOrderBy(sort: SortOption = 'newest', includeDeleted = false) {
@@ -223,7 +154,7 @@ const profileInclude = {
 };
 
 export async function getProfiles(options: ProfileQueryOptions = {}): Promise<Profile[]> {
-  const where = buildProfileWhere(options);
+  const where = await buildProfileWhere(options);
   const orderBy = buildProfileOrderBy(options.sort, options.includeDeleted);
 
   const rawProfiles = await prisma.profile.findMany({
@@ -236,7 +167,7 @@ export async function getProfiles(options: ProfileQueryOptions = {}): Promise<Pr
 }
 
 export async function getProfilesPage(options: ProfileQueryOptions & { page: number; pageSize: number }) {
-  const where = buildProfileWhere(options);
+  const where = await buildProfileWhere(options);
   const orderBy = buildProfileOrderBy(options.sort, options.includeDeleted);
   const page = Math.max(1, Math.floor(options.page));
   const pageSize = Math.max(1, Math.floor(options.pageSize));
@@ -509,6 +440,7 @@ async function deleteLocalUploadIfUnused(url: string) {
   if (!filePath) return;
   try {
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    await removeThumbnail(filename);
   } catch (error) {
     console.warn('Local gallery image could not be deleted', error);
   }
@@ -600,19 +532,22 @@ export async function cleanOldTrash(): Promise<number> {
 }
 
 // Platforms
+// Unique, non-trashed profiles per platform (a profile with two links on one platform counts once).
+async function countProfilesByPlatform(): Promise<Map<string, number>> {
+  const rows = await prisma.$queryRaw<{ platformId: string; total: bigint | number }[]>`
+    SELECT l."platformId" AS platformId, COUNT(DISTINCT l."profileId") AS total
+    FROM "PlatformLink" l
+    JOIN "Profile" p ON p."id" = l."profileId"
+    WHERE p."deletedAt" IS NULL
+    GROUP BY l."platformId"`;
+  return new Map(rows.map((row) => [row.platformId, Number(row.total)]));
+}
+
 export async function getAllPlatforms(): Promise<PlatformItem[]> {
-  const platforms = await prisma.platform.findMany({
-    orderBy: [{ isCustom: 'asc' }, { createdAt: 'asc' }],
-    include: {
-      links: {
-        // Trashed profiles do not count toward the visible archive.
-        where: { profile: { deletedAt: null } },
-        select: {
-          profileId: true,
-        },
-      },
-    },
-  });
+  const [platforms, counts] = await Promise.all([
+    prisma.platform.findMany({ orderBy: [{ isCustom: 'asc' }, { createdAt: 'asc' }] }),
+    countProfilesByPlatform(),
+  ]);
 
   return platforms.map((p) => ({
     id: p.id,
@@ -621,8 +556,7 @@ export async function getAllPlatforms(): Promise<PlatformItem[]> {
     icon: p.icon,
     color: p.color,
     isCustom: p.isCustom,
-    // A profile with several links on one platform is still one profile.
-    count: new Set(p.links.map((link) => link.profileId)).size,
+    count: counts.get(p.id) ?? 0,
   }));
 }
 
@@ -658,53 +592,39 @@ export async function createCustomPlatform(data: {
   };
 }
 
-// Stats aggregation
+// Stats aggregation: everything is counted in SQL, no profile rows are loaded.
 export async function getStats() {
-  const activeProfiles = await prisma.profile.findMany({
-    where: { deletedAt: null },
-    include: {
-      tags: { include: { tag: true } },
-      collections: { include: { collection: true } },
-      platformLinks: { include: { platform: true } },
-    },
-  });
+  const active = { deletedAt: null };
+  const [total, favorites, later, trashCount, platformsData, tagGroups, collectionGroups] = await Promise.all([
+    prisma.profile.count({ where: active }),
+    prisma.profile.count({ where: { ...active, isFavorite: true } }),
+    prisma.profile.count({ where: { ...active, collections: { some: { collection: { name: { in: WATCH_LATER_ALIASES } } } } } }),
+    prisma.profile.count({ where: { deletedAt: { not: null } } }),
+    getAllPlatforms(),
+    prisma.profileTag.groupBy({ by: ['tagId'], where: { profile: active }, _count: { _all: true } }),
+    prisma.profileCollection.groupBy({ by: ['collectionId'], where: { profile: active }, _count: { _all: true } }),
+  ]);
 
-  const trashCount = await prisma.profile.count({
-    where: { deletedAt: { not: null } },
-  });
+  const [tagRows, collectionRows] = await Promise.all([
+    prisma.tag.findMany({ where: { id: { in: tagGroups.map((group) => group.tagId) } }, select: { id: true, name: true } }),
+    prisma.collection.findMany({ where: { id: { in: collectionGroups.map((group) => group.collectionId) } }, select: { id: true, name: true } }),
+  ]);
+  const tagNames = new Map(tagRows.map((row) => [row.id, row.name]));
+  const collectionNames = new Map(collectionRows.map((row) => [row.id, row.name]));
 
-  const total = activeProfiles.length;
-  const favorites = activeProfiles.filter((p) => p.isFavorite).length;
-  const later = activeProfiles.filter((p) =>
-    p.collections.some((c) => isWatchLaterCollection(c.collection.name))
-  ).length;
-
-  const platformsData = await getAllPlatforms();
   const platforms: Record<string, number> = {};
-  platformsData.forEach((plat) => {
-    platforms[plat.key] = plat.count || 0;
-  });
-
-  const withWebsite = platforms['website'] || 0;
-
+  platformsData.forEach((plat) => { platforms[plat.key] = plat.count || 0; });
   const tags: Record<string, number> = {};
+  tagGroups.forEach((group) => { const name = tagNames.get(group.tagId); if (name) tags[name] = group._count._all; });
   const collections: Record<string, number> = {};
-
-  activeProfiles.forEach((p) => {
-    p.tags.forEach((pt) => {
-      tags[pt.tag.name] = (tags[pt.tag.name] || 0) + 1;
-    });
-    p.collections.forEach((pc) => {
-      collections[pc.collection.name] = (collections[pc.collection.name] || 0) + 1;
-    });
-  });
+  collectionGroups.forEach((group) => { const name = collectionNames.get(group.collectionId); if (name) collections[name] = group._count._all; });
 
   return {
     total,
     favorites,
     later,
     trashCount,
-    withWebsite,
+    withWebsite: platforms['website'] || 0,
     platforms,
     tags,
     collections,

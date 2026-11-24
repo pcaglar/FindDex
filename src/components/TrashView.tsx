@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Profile } from '@/types/profile';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -15,6 +15,8 @@ import {
 import { PlatformIcon } from './PlatformIcon';
 import { currentLanguage, formatDateTime } from '@/i18n/format';
 import { PaginationControls } from './PaginationControls';
+import { ThumbImage } from './ThumbImage';
+import { ConfirmModal } from './ConfirmModal';
 
 interface TrashViewProps {
   trashedProfiles: Profile[];
@@ -26,6 +28,8 @@ interface TrashViewProps {
   onRestore: (id: string) => Promise<void>;
   onPermanentDelete: (id: string) => Promise<void>;
   onEmptyTrash: () => Promise<void>;
+  onBulkRestore: (ids: string[]) => Promise<void>;
+  onBulkDelete: (ids: string[]) => Promise<void>;
   onClose: () => void;
 }
 
@@ -39,11 +43,37 @@ export function TrashView({
   onRestore,
   onPermanentDelete,
   onEmptyTrash,
+  onBulkRestore,
+  onBulkDelete,
   onClose,
 }: TrashViewProps) {
   const { t, i18n } = useTranslation();
   const [confirmEmpty, setConfirmEmpty] = useState(false);
   const [candidateDeleteId, setCandidateDeleteId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  // Selection only ever refers to profiles on the page that is showing.
+  useEffect(() => {
+    const visible = new Set(trashedProfiles.map((profile) => profile.id));
+    setSelected((current) => {
+      const next = new Set([...current].filter((id) => visible.has(id)));
+      return next.size === current.size ? current : next;
+    });
+  }, [trashedProfiles]);
+
+  const toggle = (id: string) => setSelected((current) => {
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const allSelected = trashedProfiles.length > 0 && selected.size === trashedProfiles.length;
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(trashedProfiles.map((profile) => profile.id)));
+  const run = async (action: (ids: string[]) => Promise<void>) => {
+    setBusy(true);
+    try { await action([...selected]); setSelected(new Set()); } finally { setBusy(false); }
+  };
 
   const formatDate = (isoString?: string | null) => isoString ? formatDateTime(isoString, currentLanguage(i18n.language)) : '';
 
@@ -102,6 +132,26 @@ export function TrashView({
         )}
       </div>
 
+      {trashedProfiles.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#1f293d] bg-[#111827] px-3 py-2" role="toolbar" aria-label={t('bulk.selectedCount', { count: selected.size })}>
+          <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-300">
+            <input type="checkbox" checked={allSelected} onChange={toggleAll} className="h-4 w-4 rounded border-slate-600 bg-slate-900 accent-pink-500" />
+            {t('bulk.selectPage')}
+          </label>
+          <span className="text-xs text-slate-400">{t('bulk.selectedCount', { count: selected.size })}</span>
+          {selected.size > 0 && (
+            <div className="ml-auto flex items-center gap-2">
+              <button type="button" disabled={busy} onClick={() => run(onBulkRestore)} className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/20 disabled:opacity-50">
+                <RotateCcw className="h-3.5 w-3.5" />{t('bulk.restore')}
+              </button>
+              <button type="button" disabled={busy} onClick={() => setConfirmBulkDelete(true)} className="flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 disabled:opacity-50">
+                <Trash2 className="h-3.5 w-3.5" />{t('bulk.deleteForever')}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Trashed Profiles List */}
       {trashedProfiles.length === 0 ? (
         <div className="py-20 rounded-3xl bg-[#111827]/40 border border-[#1f293d] flex flex-col items-center justify-center text-center p-6">
@@ -129,10 +179,15 @@ export function TrashView({
                 className="p-4 rounded-2xl bg-[#111827] border border-[#1f293d] hover:border-slate-700 flex flex-col justify-between gap-3 transition shadow-md"
               >
                 <div className="flex items-start gap-3.5">
+                  <label className="mt-1 flex shrink-0 cursor-pointer">
+                    <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggle(p.id)} aria-label={t('bulk.selectProfile', { name: p.displayName })} className="h-4 w-4 rounded border-slate-600 bg-slate-900 accent-pink-500" />
+                  </label>
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-900 border border-slate-800">
-                    <img
+                    <ThumbImage
                       src={p.avatarUrl}
                       alt={p.displayName}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover grayscale opacity-75"
                     />
                   </div>
@@ -205,6 +260,16 @@ export function TrashView({
           })}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmBulkDelete}
+        title={t('bulk.deleteTitle')}
+        message={t('bulk.deleteMessage', { count: selected.size })}
+        confirmLabel={t('bulk.deleteForever')}
+        isDangerous
+        onCancel={() => setConfirmBulkDelete(false)}
+        onConfirm={() => { setConfirmBulkDelete(false); void run(onBulkDelete); }}
+      />
 
       {trashedProfiles.length > 0 && (
         <PaginationControls page={page} pageSize={pageSize} total={total} totalPages={totalPages} onPageChange={onPageChange} />

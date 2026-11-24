@@ -3,9 +3,9 @@
 ## Mimari ve veri akışı
 
 - Self-hosted, tek kullanıcılı Next.js 14 App Router + React + TypeScript (strict) + Tailwind uygulaması; Prisma üzerinden SQLite kullanır.
-- `src/app/`: ana arşiv, `settings/`, `stats/`; `src/components/`: profil formu, kart/liste, galeri, filtreler, çöp kutusu ve modallar.
+- `src/app/`: ana arşiv, `settings/`, `stats/`; `src/components/`: kart/liste, galeri, filtreler, toplu işlem çubuğu, çöp kutusu, modallar; profil formu `profile-form/` altında alt bileşenlere ve `useProfileForm` hook'una bölünmüştür. `src/hooks/`: `page.tsx`'in durum mantığı (`useProfileFilters`, `useProfilesData`, `useCatalog`, `useTrash`, `useSelection`, `useSidebarLayout`, `useThemeToggle`). Yeni durum mantığını `page.tsx`'e değil hook'lara koy.
 - `src/app/api/`: profil CRUD/sayfalama/aktivite/tekrar kontrolü, platform/etiket/koleksiyon, istatistik, ayarlar, bakım, yedek ve JSON/ZIP aktarım rotaları.
-- `src/lib/profileService.ts`: profil iş kuralları ve ilişkiler; `prisma.ts`: ortak istemci. Diğer yardımcılar görsel, aktarım, yedek ve bakım işlemlerini yönetir; bazı rotalar doğrudan Prisma kullanır. `src/types/` ortak tipleri tutar.
+- `src/lib/profileService.ts`: profil iş kuralları, ilişkiler ve SQL toplulaştırmalı istatistikler (profil satırlarını belleğe çekme); `bulkService.ts`: toplu işlemler (tek transaction, aktivite kaydı); `savedFilters.ts` + `profileFilters.ts`: kayıtlı filtreler ve istemci/sunucu ortak filtre modeli (`profileFilters.ts` sunucu bağımlılığı içermemeli); `profileSearch.ts` + `textFold.ts`: Türkçe/aksan duyarsız arama (aynı karakter tablosu hem JS hem SQL ifadesini üretir, test eder); `thumbnails.ts`: `UPLOADS_DIR/.thumbs` altında isteğe bağlı üretilen türetilmiş önizlemeler (`/api/uploads/<dosya>?thumb=1`, DB'ye yazılmaz, dışa aktarma/orphan/depolama sayımına girmez); `prisma.ts`: ortak istemci. Diğer yardımcılar görsel, aktarım, yedek ve bakım işlemlerini yönetir; bazı rotalar doğrudan Prisma kullanır. `src/types/` ortak tipleri tutar.
 - Akış: istemci bileşenleri → HTTP `/api/*` → servis/Prisma → SQLite → JSON → arayüz. Silme önce `deletedAt` ile çöp kutusuna taşır; kalıcı silme ayrıdır.
 - `prisma/schema.prisma` modeli, `prisma/migrations/` sürümlü SQL'i, `systemDefaults.ts` sistem kayıtlarını, `seed.ts` demo verisini tanımlar. `src/lib/db.ts` ve `data/vault.json` eski JSON katmanıdır; yeni işlevler Prisma kullanır.
 - `src/i18n/` + `locales/`: i18next ve yerel biçimlendirme. Dil/tema/görünüm tercihleri tarayıcıda, uygulama ayarları SQLite'tadır.
@@ -29,6 +29,7 @@
 - Builder kontrolleri için `docker build --target builder -t finddex-check .`, ardından `docker run --rm finddex-check npm run lint` veya `docker run --rm finddex-check npx tsx scripts/test-system-defaults.ts`. Production image geliştirme araçlarını içermez.
 - `npm run lint` ESLint 8 + `next/core-web-vitals` (`.eslintrc.json`) ile çalışır; temiz çıkmalı. `npm test` yok. `npm run test:core` geçici SQLite/upload/yedek dizinlerinde profil güncelleme atomikliği, platform sayımları, çöp kutusu, orphan taraması, export/import ve ağ korumasını; sistem testi migration/reset varsayılanlarını kontrol eder. `npm run test:telegram` bot yetkilendirmesini ve API/galeri aktarımını geçici verilerle test eder; Docker'da `docker run --rm finddex-check npm run test:telegram` kullan.
 - Bot kurulumu: `npm run telegram:setup` (Node.js 20.6+); `.env` içinde bot tokenı, kullanıcı ID'si, scraper URL'si ve FindDex API anahtarı; çalıştırma `docker compose --profile telegram up -d --build` veya `npm run telegram:bot`. Boş kullanıcı ID'sinde `/whoami` çalışır, kayıt kapalıdır. Ayrıntılar README'dedir.
+- `npm run test:extension` eklenti `_locales` anahtar eşitliğini, kullanılan anahtarların varlığını ve dil yükleyicisini kontrol eder.
 - Eklenti testleri: `python3 scripts/test-extension-cdp.py "$FINDDEX_TEST_API_KEY"` ve `python3 scripts/test-instagram-extraction-cdp.py "$FINDDEX_TEST_API_KEY"`. Python `websockets`, Chrome CDP `127.0.0.1:9223`, eklenti, açık Instagram sekmesi ve `localhost:12000` gerekir; ikinci betik `/instagram/` sayfasını bekler. Kayıt ekledikleri için test verisi/anahtarı kullan.
 - Docker'sız `.env` içindeki `UPLOADS_DIR` ve `BACKUPS_DIR` değerlerini repo içindeki `public/uploads` ve `data/backups` mutlak yollarına ayarla veya kaldır. `DATABASE_URL=file:./dev.db?connection_limit=1&socket_timeout=30` Prisma klasörüne göredir.
 - `npm run dev`/`npm run start` yedek zamanlayıcısını başlatmaz; gerekirse ayrıca `node scripts/backup-scheduler.mjs` çalıştır. Otomatik JSON yedekleri görsel dosyalarını içermez; görseller için ZIP export kullan.
@@ -36,7 +37,7 @@
 
 ## Kodlama kuralları
 
-- UI metinlerini **yalnızca `locales/en.json` ve `locales/tr.json`** içine yaz; İngilizce kaynak dildir, anahtarlar aynı kalır. Bileşenlerde `t(...)` kullan; inline sözlük veya hardcoded UI mesajı ekleme. Eklentinin mevcut inline sözlükleri teknik borçtur.
+- UI metinlerini **yalnızca `locales/en.json` ve `locales/tr.json`** içine yaz; İngilizce kaynak dildir, anahtarlar aynı kalır. Bileşenlerde `t(...)` kullan; inline sözlük veya hardcoded UI mesajı ekleme. Eklenti metinleri `finddex-instagram-extension/_locales/{en,tr}/messages.json` içindedir (`i18n.js` seçilen dili yükler); yeni eklenti metnini oraya ekle, iki dilde de aynı anahtarlar olmalı (`npm run test:extension` denetler).
 - Tarih/sayı gösteriminde `Intl.DateTimeFormat` / `Intl.NumberFormat`, tercihen `src/i18n/format.ts` yardımcılarını kullan. API tarihleri ISO kalır.
 - TypeScript strict ve `@/*` → `src/*` alias'ını koru; veritabanı/dosya sistemi sunucuda, istemci erişimi API üzerinden kalır.
 

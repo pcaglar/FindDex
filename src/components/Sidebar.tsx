@@ -20,10 +20,12 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
+  BookmarkCheck,
 } from 'lucide-react';
 import { PlatformIcon } from './PlatformIcon';
 import { getTagStyle } from '@/lib/colors';
 import { PlatformItem } from '@/types/profile';
+import type { SavedFilterItem } from '@/lib/profileFilters';
 import { useTranslation } from 'react-i18next';
 import { isSystemCollection, systemCollectionLabelKey } from '@/lib/systemCollections';
 import { currentLanguage } from '@/i18n/format';
@@ -57,6 +59,12 @@ interface SidebarProps {
   platforms: PlatformItem[];
   activeNav: string;
   onSelectNav: (nav: string) => void;
+  /** Tags currently used as filters (several can be active at once). */
+  activeTags?: string[];
+  onToggleTag?: (tag: string) => void;
+  savedFilters?: SavedFilterItem[];
+  onApplySavedFilter?: (filter: SavedFilterItem) => void;
+  onDeleteSavedFilter?: (filter: SavedFilterItem) => void;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
   onOpenNewProfile: () => void;
@@ -142,6 +150,11 @@ export function Sidebar({
   platforms,
   activeNav,
   onSelectNav,
+  activeTags = [],
+  onToggleTag,
+  savedFilters = [],
+  onApplySavedFilter,
+  onDeleteSavedFilter,
   isOpenMobile,
   onCloseMobile,
   onOpenNewProfile,
@@ -383,6 +396,39 @@ export function Sidebar({
             <span>{t('nav.settings')}</span>
           </Link>
 
+          {/* Saved Filters Section */}
+          <div className="pt-2">
+            <div className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <BookmarkCheck className="w-3.5 h-3.5 text-cyan-400" />
+              <span>{t('savedFilters.title')}</span>
+            </div>
+            {savedFilters.length === 0 ? (
+              <p className="px-3.5 pb-1 text-xs text-slate-500">{t('savedFilters.empty')}</p>
+            ) : (
+              <div className="sidebar-sublist ml-3 space-y-0.5 pr-1">
+                {savedFilters.map((saved) => (
+                  <div key={saved.id} className="group relative flex items-center">
+                    <button
+                      onClick={() => { onApplySavedFilter?.(saved); onCloseMobile(); }}
+                      aria-label={t('savedFilters.apply', { name: saved.name })}
+                      className="flex-1 truncate rounded-lg px-3 py-1.5 text-left text-xs text-slate-400 transition hover:bg-slate-800/40 hover:text-slate-200"
+                    >
+                      {saved.name}
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDeleteSavedFilter?.(saved); }}
+                      className="absolute right-1 rounded p-1 text-slate-500 opacity-0 transition hover:bg-slate-700 hover:text-rose-400 group-hover:opacity-100 focus:opacity-100"
+                      title={t('savedFilters.delete')}
+                      aria-label={t('savedFilters.delete')}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Collections Section */}
           <div className="pt-2">
             <div className="flex items-center justify-between px-3.5 py-2">
@@ -497,14 +543,14 @@ export function Sidebar({
               sortedTags.map((tagInfo) => {
                 const tag = tagInfo.name;
                 const count = stats?.tags[tag] ?? tagInfo.count ?? 0;
-                const navKey = `tag:${tag}`;
-                const isSelected = activeNav === navKey;
+                const isSelected = activeTags.includes(tag);
                 const style = getTagStyle(tag, tagInfoMap[tag]?.color);
                 const tagId = tagIdMap[tag];
                 return (
                   <div key={tag} className="group relative flex items-center">
                     <button
-                      onClick={() => { onSelectNav(isSelected ? 'all' : navKey); onCloseMobile(); }}
+                      onClick={() => { onToggleTag?.(tag); onCloseMobile(); }}
+                      aria-pressed={isSelected}
                       className={`flex-1 flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition ${
                         isSelected
                           ? 'bg-slate-800 text-white font-medium shadow-sm border border-slate-700'

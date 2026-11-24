@@ -12,6 +12,10 @@ FindDex turns those passing discoveries into your own searchable memory. Save an
 
 - Profiles with multiple platform links, tags, collections, notes, and favorites
 - Multi-image galleries, cover selection, card navigation, and full-screen lightbox
+- Search that ignores case and accents, including Turkish letters (`ipek` finds `İpek`, `yildiz` finds `Yıldız`)
+- Filtering by several tags at once (all or any), and saved filters you can re-apply from the sidebar
+- Bulk actions: select many profiles to tag, add to collections, favorite, move to Trash, restore or delete
+- Fast grid: small previews are generated on demand, while a click opens the original image
 - Duplicate detection, soft-delete Trash, and profile activity history
 - Server-side pagination and an aggregated statistics dashboard
 - JSON/ZIP import and export with uploaded images
@@ -57,6 +61,10 @@ docker compose down
 ```
 
 `docker compose down` removes the container and Compose network but keeps persistent data. Do not use `docker compose down -v` unless you intentionally want to delete Docker-managed volumes.
+
+## Image previews
+
+The grid, list and Trash show small WebP previews that FindDex creates the first time an image is shown. They are cached in a hidden `.thumbs` folder inside the uploads directory, are never part of ZIP exports or backups, and can be deleted at any time (they are rebuilt on demand). The original upload is never modified, and clicking an image opens the original. Remote images and images that are already small are shown as they are.
 
 ## Storage configuration
 

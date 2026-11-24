@@ -1,15 +1,11 @@
+importScripts('i18n.js');
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== 'SAVE_PROFILE') return;
   (async () => {
     const { serverUrl, apiKey, language = 'en' } = await chrome.storage.local.get(['serverUrl', 'apiKey', 'language']);
-    const text = language === 'tr' ? {
-      setup: 'Önce FindDex adresini ve API anahtarını kaydedin.', invalidKey: 'API anahtarı geçersiz.', server: 'Sunucu hatası',
-      reasons: { SAME_USERNAME: 'Aynı kullanıcı adı', SAME_URL: "Aynı profil URL'si", SIMILAR_NAME: 'Benzer isim' },
-    } : {
-      setup: 'Save the FindDex address and API key first.', invalidKey: 'The API key is invalid.', server: 'Server error',
-      reasons: { SAME_USERNAME: 'Same username', SAME_URL: 'Same profile URL', SIMILAR_NAME: 'Similar name' },
-    };
-    if (!serverUrl || !apiKey) throw new Error(text.setup);
+    const t = await FindDexI18n.createTranslator(language);
+    if (!serverUrl || !apiKey) throw new Error(t('errorSetup'));
     const response = await fetch(`${serverUrl.replace(/\/+$/, '')}/api/external/profiles`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
@@ -18,8 +14,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
       const duplicate = result.duplicates?.[0];
-      const detail = duplicate ? ` ${duplicate.displayName} (@${duplicate.username}): ${duplicate.reasons.map((reason) => text.reasons[reason] || reason).join(', ')}` : '';
-      throw new Error(`${response.status === 401 ? text.invalidKey : result.error || `${text.server} (${response.status})`}${detail}`);
+      const detail = duplicate ? ` ${duplicate.displayName} (@${duplicate.username}): ${duplicate.reasons.map((reason) => t(`reason${reason}`)).join(', ')}` : '';
+      throw new Error(`${response.status === 401 ? t('errorInvalidKey') : result.error || `${t('errorServer')} (${response.status})`}${detail}`);
     }
     return result;
   })().then((result) => sendResponse({ ok: true, result })).catch((error) => sendResponse({ ok: false, error: error.message }));
