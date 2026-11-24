@@ -1,7 +1,15 @@
 const baseUrl = process.env.INTERNAL_BASE_URL || 'http://127.0.0.1:3000';
 const intervalOverride = Number(process.env.BACKUP_INTERVAL_MS || 0);
 
+async function cleanTrash() {
+  try {
+    const response = await fetch(`${baseUrl}/api/maintenance/trash`, { method: 'POST' });
+    if (!response.ok) console.error('[trash] Automatic cleanup failed:', response.status);
+  } catch (error) { console.error('[trash] Cleanup request failed:', error?.message || error); }
+}
+
 async function runIfEnabled() {
+  await cleanTrash();
   try {
     const settingsResponse = await fetch(`${baseUrl}/api/settings`);
     if (!settingsResponse.ok) return;

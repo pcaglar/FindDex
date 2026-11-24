@@ -17,9 +17,9 @@ interface StatsData {
 function Bars({ data, color = 'bg-pink-500' }: { data: { name: string; value: number }[]; color?: string }) {
   const { t, i18n } = useTranslation();
   const max = Math.max(1, ...data.map((item) => item.value));
-  return <div className="space-y-3">{data.length ? data.map((item) => (
-    <div key={item.name} className="grid grid-cols-[110px_1fr_32px] items-center gap-3 text-xs">
-      <span className="truncate text-slate-300" title={item.name}>{item.name}</span>
+  return <div className="space-y-3">{data.length ? data.map((item, index) => (
+    <div key={`${item.name}-${index}`} className="grid grid-cols-[110px_1fr_32px] items-center gap-3 text-xs">
+      <span className="truncate text-slate-300" title={item.name || t('common.unknown')}>{item.name || t('common.unknown')}</span>
       <div className="h-2.5 overflow-hidden rounded-full bg-slate-800">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.max(4, item.value / max * 100)}%` }} />
       </div>
@@ -92,7 +92,7 @@ export default function StatsPage() {
             <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5"><h2 className="font-bold mb-3">{t('stats.trend')}</h2><TrendChart data={data.trend} /></div>
             <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 flex flex-col items-center justify-center text-center">
               <BadgeCheck className="w-7 h-7 text-emerald-400 mb-3" />
-              <div className="relative w-32 h-32 rounded-full grid place-items-center" style={{ background: `conic-gradient(#34d399 ${data.verified.percentage}%, var(--border-color) 0)` }}><div className="w-24 h-24 rounded-full bg-[var(--bg-card)] grid place-items-center"><span className="text-2xl font-black">%{data.verified.percentage}</span></div></div>
+              <div className="relative w-32 h-32 rounded-full grid place-items-center" style={{ background: `conic-gradient(#34d399 ${data.verified.percentage}%, var(--border-color) 0)` }}><div className="w-24 h-24 rounded-full bg-[var(--bg-card)] grid place-items-center"><span className="text-2xl font-black">{formatNumber(data.verified.percentage / 100, language, { style: 'percent', maximumFractionDigits: 0 })}</span></div></div>
               <h2 className="mt-4 font-bold">{t('stats.verifiedRate')}</h2><p className="text-xs text-slate-400">{t('stats.profileCount', { count: `${formatNumber(data.verified.count, language)} / ${formatNumber(data.verified.total, language)}` })}</p>
             </div>
           </section>

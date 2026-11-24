@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import JSZip from 'jszip';
 import { createExportSnapshot } from '@/lib/transfer';
+import { uploadsDirectory } from '@/lib/uploadStorage';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     const zip = new JSZip();
     zip.file(`finddex-export-${date}.json`, json);
-    await addDirectoryToZip(zip, path.join(process.cwd(), 'public', 'uploads'), 'uploads');
+    await addDirectoryToZip(zip, uploadsDirectory, 'uploads');
     const archive = await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
     return new NextResponse(archive.buffer as ArrayBuffer, {
       headers: {

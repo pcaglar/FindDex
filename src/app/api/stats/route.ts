@@ -1,17 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getStats, cleanOldTrash } from '@/lib/profileService';
+import { getStats } from '@/lib/profileService';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Optionally clean profiles soft deleted > 30 days ago
-    try {
-      await cleanOldTrash();
-    } catch (e) {
-      console.warn('Auto clean trash notice:', e);
-    }
-
     const stats = await getStats();
     return NextResponse.json({ success: true, data: stats });
   } catch (error) {

@@ -55,13 +55,13 @@ export async function GET() {
         summary: { total, favorites, collections, trash },
         platformDistribution: platformGroups
           .map((group) => ({
-            name: platformMap.get(group.platformId)?.name || 'Bilinmeyen',
+            name: platformMap.get(group.platformId)?.name || '',
             value: group._count.profileId,
             color: platformMap.get(group.platformId)?.color || '',
           }))
           .sort((a, b) => b.value - a.value),
         topTags: tagGroups.map((group) => ({
-          name: tagMap.get(group.tagId)?.name || 'Bilinmeyen',
+          name: tagMap.get(group.tagId)?.name || '',
           value: group._count.profileId,
           color: tagMap.get(group.tagId)?.color || 'pink',
         })),

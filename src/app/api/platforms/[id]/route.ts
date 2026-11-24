@@ -72,6 +72,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Error deleting platform:', error);
-    return NextResponse.json({ success: false, error: 'Platform silinemedi' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Platform could not be deleted' }, { status: 500 });
   }
 }

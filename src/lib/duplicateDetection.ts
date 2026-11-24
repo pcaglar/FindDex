@@ -17,6 +17,9 @@ function levenshtein(left: string, right: string) {
   return row[right.length];
 }
 
+// Reasons are language-neutral codes; clients translate them (profile.duplicateReason.*).
+export type DuplicateReason = 'SAME_USERNAME' | 'SAME_URL' | 'SIMILAR_NAME';
+
 export async function findDuplicateProfiles(input: { username?: string; name?: string; urls?: string[]; excludeId?: string | null }) {
   const username = normalizeUsername(input.username || '');
   const name = normalizeName(input.name || '');
@@ -24,12 +27,12 @@ export async function findDuplicateProfiles(input: { username?: string; name?: s
   if (!username && !name && !urls.length) return [];
   const profiles = await prisma.profile.findMany({ where: input.excludeId ? { id: { not: input.excludeId } } : undefined, include: { platformLinks: { include: { platform: true } } }, orderBy: { updatedAt: 'desc' } });
   return profiles.flatMap((profile) => {
-    const reasons: string[] = [];
-    if (username && normalizeUsername(profile.username) === username) reasons.push('Same username');
+    const reasons: DuplicateReason[] = [];
+    if (username && normalizeUsername(profile.username) === username) reasons.push('SAME_USERNAME');
     const profileUrls = profile.platformLinks.map((link) => normalizeUrl(link.url));
-    if (urls.some((url) => profileUrls.includes(url))) reasons.push('Same profile URL');
+    if (urls.some((url) => profileUrls.includes(url))) reasons.push('SAME_URL');
     let score = 0;
-    if (name.length >= 3) { score = 1 - levenshtein(name, normalizeName(profile.displayName)) / Math.max(name.length, normalizeName(profile.displayName).length); if (score >= 0.85) reasons.push(`Benzer isim (%${Math.round(score * 100)})`); }
+    if (name.length >= 3) { score = 1 - levenshtein(name, normalizeName(profile.displayName)) / Math.max(name.length, normalizeName(profile.displayName).length); if (score >= 0.85) reasons.push('SIMILAR_NAME'); }
     return reasons.length ? [{ id: profile.id, username: profile.username, displayName: profile.displayName, avatarUrl: profile.avatarUrl, deletedAt: profile.deletedAt?.toISOString() || null, reasons, similarity: score, platformLinks: profile.platformLinks.map((link) => ({ platformKey: link.platform.key, url: link.url })) }] : [];
   }).slice(0, 5);
 }

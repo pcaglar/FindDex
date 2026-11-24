@@ -1,6 +1,6 @@
 {
   "name": "finddex",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,6 +9,7 @@
     "lint": "next lint",
     "telegram:bot": "node --env-file=.env scripts/telegram-bot.mjs",
     "telegram:setup": "node --env-file=.env scripts/setup-telegram.mjs",
+    "test:core": "tsx scripts/test-core-fixes.ts && tsx scripts/test-system-defaults.ts",
     "test:telegram": "node --test scripts/test-telegram-bot.mjs && tsx scripts/test-instagram-import.ts"
   },
   "dependencies": {
@@ -28,6 +29,8 @@
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.15",
     "postcss": "^8.4.47",
     "prisma": "^6.19.3",
     "tailwindcss": "^3.4.14",

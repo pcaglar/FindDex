@@ -49,7 +49,10 @@ export function DataTransferModal({ isOpen, initialTab, onClose, onImported }: D
       const response = await fetch('/api/import', { method: 'POST', body: form });
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error(result.error || t('transfer.importFailed'));
-      setMessage(t('transfer.imported', { profiles: result.data.profiles, uploads: result.data.uploads }));
+      setMessage([
+        t('transfer.imported', { profiles: result.data.profiles, uploads: result.data.uploads }),
+        result.data.safetyBackup ? t('transfer.safetyBackup', { name: result.data.safetyBackup }) : '',
+      ].filter(Boolean).join(' '));
       onImported();
     } catch (importError: any) {
       setError(importError?.message || t('transfer.importFailed'));

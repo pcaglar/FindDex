@@ -25,6 +25,7 @@ import { PlatformIcon } from './PlatformIcon';
 import { getTagStyle } from '@/lib/colors';
 import { PlatformItem } from '@/types/profile';
 import { useTranslation } from 'react-i18next';
+import { isSystemCollection, systemCollectionLabelKey } from '@/lib/systemCollections';
 import { currentLanguage } from '@/i18n/format';
 
 interface SidebarStats {
@@ -76,7 +77,6 @@ interface SidebarProps {
   onToggleDesktopCollapsed?: () => void;
 }
 
-const SYSTEM_COLLECTIONS = ['favoriler', 'sonra bak'];
 type SidebarSortMode = 'alpha' | 'count';
 
 function SortSelect({ value, onChange, label }: { value: SidebarSortMode; onChange: (value: SidebarSortMode) => void; label: string }) {
@@ -410,7 +410,7 @@ export function Sidebar({
                   const count = stats?.collections[collName] ?? collection.count ?? 0;
                   const navKey = `collection:${collName}`;
                   const isSelected = activeNav === navKey;
-                  const isSystemCol = SYSTEM_COLLECTIONS.includes(collName.toLowerCase());
+                  const isSystemCol = isSystemCollection(collName);
                   const colId = colIdMap[collName];
                   return (
                     <div key={collName} className="group relative flex items-center">
@@ -422,13 +422,7 @@ export function Sidebar({
                             : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
                         }`}
                       >
-                        <span className="truncate">{
-                          ['favoriler', 'favorites'].includes(collName.toLowerCase())
-                            ? t('sidebar.favorites')
-                            : ['sonra bak', 'watch later'].includes(collName.toLowerCase())
-                              ? t('sidebar.watchLater')
-                              : collName
-                        }</span>
+                        <span className="truncate">{systemCollectionLabelKey(collName) ? t(systemCollectionLabelKey(collName)!) : collName}</span>
                         <span className="text-[11px] text-slate-500 font-mono">{count}</span>
                       </button>
                       {/* Edit/Delete buttons (only for non-system collections) */}

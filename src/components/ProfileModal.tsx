@@ -483,7 +483,7 @@ export function ProfileModal({
                       <img src={candidate.avatarUrl} alt="" className="w-11 h-11 rounded-lg object-cover bg-slate-800" />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-white truncate">{candidate.displayName}</p>
-                        <p className="text-xs text-slate-400 truncate">@{candidate.username} · {candidate.reasons.join(' · ')}</p>
+                        <p className="text-xs text-slate-400 truncate">@{candidate.username} · {candidate.reasons.map((reason) => t(`profile.duplicateReason.${reason}`, { defaultValue: reason })).join(' · ')}</p>
                         {candidate.deletedAt && <p className="text-[11px] text-rose-300 mt-0.5">{t('profile.trashDuplicate')}</p>}
                       </div>
                       {candidate.deletedAt && (

@@ -242,3 +242,7 @@ Copy `.env.example` to `.env` before running local Prisma commands.
 ## Security
 
 FindDex is designed for a trusted single-user environment and does not include multi-user authentication. If it is reachable from the internet, protect it with a reverse proxy, VPN, or another access-control layer.
+
+Because the server downloads remote profile images, URLs that point at loopback, private-network or link-local addresses (for example `http://192.168.1.10/…` or `http://localhost/…`) are rejected, including after redirects. To download images from a host on your own network on purpose, set `ALLOW_PRIVATE_IMAGE_HOSTS=true` in `.env`.
+
+Replace imports first save a JSON copy of the current data in the backups folder (`finddex-backup-…-before-import.json`) and, for ZIP imports that contain images, a copy of the current uploads in `uploads-before-import-…`. These copies are not pruned automatically.

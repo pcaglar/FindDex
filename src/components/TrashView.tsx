@@ -14,9 +14,15 @@ import {
 } from 'lucide-react';
 import { PlatformIcon } from './PlatformIcon';
 import { currentLanguage, formatDateTime } from '@/i18n/format';
+import { PaginationControls } from './PaginationControls';
 
 interface TrashViewProps {
   trashedProfiles: Profile[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
   onRestore: (id: string) => Promise<void>;
   onPermanentDelete: (id: string) => Promise<void>;
   onEmptyTrash: () => Promise<void>;
@@ -25,6 +31,11 @@ interface TrashViewProps {
 
 export function TrashView({
   trashedProfiles,
+  total,
+  page,
+  pageSize,
+  totalPages,
+  onPageChange,
   onRestore,
   onPermanentDelete,
   onEmptyTrash,
@@ -48,7 +59,7 @@ export function TrashView({
             <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
               <span>{t('trash.title')}</span>
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-semibold border border-rose-500/30">
-                {t('trash.profileCount', { count: trashedProfiles.length })}
+                {t('trash.profileCount', { count: total })}
               </span>
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -57,7 +68,7 @@ export function TrashView({
           </div>
         </div>
 
-        {trashedProfiles.length > 0 && (
+        {total > 0 && (
           <div className="flex items-center gap-2 shrink-0">
             {confirmEmpty ? (
               <div className="flex items-center gap-2 bg-slate-900 p-1.5 rounded-xl border border-rose-500/40">
@@ -193,6 +204,10 @@ export function TrashView({
             );
           })}
         </div>
+      )}
+
+      {trashedProfiles.length > 0 && (
+        <PaginationControls page={page} pageSize={pageSize} total={total} totalPages={totalPages} onPageChange={onPageChange} />
       )}
     </div>
   );

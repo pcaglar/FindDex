@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-const SYSTEM_COLLECTIONS = ['favoriler', 'sonra bak'];
-
-function isSystem(name: string) {
-  return SYSTEM_COLLECTIONS.includes(name.toLowerCase());
-}
+import { isSystemCollection as isSystem } from '@/lib/systemCollections';
 
 // PUT /api/collections/[id] - rename collection
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {

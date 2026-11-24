@@ -1,4 +1,7 @@
 import type { Prisma } from '@prisma/client';
+import { SYSTEM_COLLECTION_NAMES } from '../src/lib/systemCollections';
+
+export { SYSTEM_COLLECTION_NAMES };
 
 export const SYSTEM_PLATFORMS = [
   { key: 'instagram', name: 'Instagram', icon: 'instagram', color: 'from-pink-500 via-rose-500 to-amber-500', isCustom: false },
@@ -7,9 +10,6 @@ export const SYSTEM_PLATFORMS = [
   { key: 'youtube', name: 'YouTube', icon: 'youtube', color: 'from-red-600 to-red-700', isCustom: false },
   { key: 'website', name: 'Website', icon: 'website', color: 'from-blue-600 to-indigo-600', isCustom: false },
 ] as const;
-
-// Keep legacy database names: UI labels come from sidebar.favorites/watchLater.
-export const SYSTEM_COLLECTION_NAMES = ['Favoriler', 'Sonra Bak'] as const;
 
 export async function ensureSystemDefaults(db: Pick<Prisma.TransactionClient, 'platform' | 'collection'>) {
   for (const platform of SYSTEM_PLATFORMS) {

@@ -17,6 +17,7 @@ import { PlatformIcon } from './PlatformIcon';
 import { getTagStyle } from '@/lib/colors';
 import { ProfileLightbox } from './ProfileLightbox';
 import { useTranslation } from 'react-i18next';
+import { isWatchLaterCollection, WATCH_LATER_COLLECTION } from '@/lib/systemCollections';
 
 interface ProfileListItemProps {
   profile: Profile;
@@ -54,7 +55,7 @@ export function ProfileListItem({
   const primaryLink = profile.platformLinks[0];
   const primaryKey = primaryLink?.platformKey || profile.platform || 'website';
   const primaryName = primaryLink?.platformName || 'Website';
-  const isSavedLater = profile.collections.some((c) => c.toLowerCase() === 'sonra bak');
+  const isSavedLater = profile.collections.some(isWatchLaterCollection);
 
   return (
     <div
@@ -176,7 +177,7 @@ export function ProfileListItem({
         </button>
 
         <button
-          onClick={(e) => onToggleCollection(e, 'Sonra Bak')}
+          onClick={(e) => onToggleCollection(e, WATCH_LATER_COLLECTION)}
           className={`p-2.5 rounded-xl transition ${
             isSavedLater
               ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'

@@ -26,6 +26,7 @@ import {
 import { PlatformIcon } from './PlatformIcon';
 import { getTagStyle } from '@/lib/colors';
 import { useTranslation } from 'react-i18next';
+import { isWatchLaterCollection, systemCollectionLabelKey, WATCH_LATER_COLLECTION } from '@/lib/systemCollections';
 import { currentLanguage, formatDate as localizeDate, formatDateTime as localizeDateTime } from '@/i18n/format';
 
 interface ProfileDetailPanelProps {
@@ -122,7 +123,7 @@ export function ProfileDetailPanel({
     }
   };
 
-  const isSavedLater = profile.collections.some((c) => c.toLowerCase() === 'sonra bak');
+  const isSavedLater = profile.collections.some(isWatchLaterCollection);
 
   const handleToggleFavorite = async () => {
     await onUpdateProfile(profile.id, { isFavorite: !profile.isFavorite });
@@ -568,7 +569,7 @@ export function ProfileDetailPanel({
 
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => handleToggleCollection('Sonra Bak')}
+                  onClick={() => handleToggleCollection(WATCH_LATER_COLLECTION)}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${
                     isSavedLater
                       ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
@@ -580,7 +581,7 @@ export function ProfileDetailPanel({
                 </button>
 
                 {profile.collections
-                  .filter((c) => c.toLowerCase() !== 'sonra bak')
+                  .filter((c) => !isWatchLaterCollection(c))
                   .map((col) => (
                     <button
                       key={col}
@@ -588,7 +589,7 @@ export function ProfileDetailPanel({
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition"
                       title={t('profile.removeCollection')}
                     >
-                      <span>📁 {['favoriler', 'favorites'].includes(col.toLowerCase()) ? t('sidebar.favorites') : col}</span>
+                      <span>📁 {systemCollectionLabelKey(col) ? t(systemCollectionLabelKey(col)!) : col}</span>
                       <X className="w-3 h-3 opacity-60 hover:opacity-100" />
                     </button>
                   ))}

@@ -7,8 +7,14 @@ import { safeUploadPath, uploadsDirectory } from '@/lib/uploadStorage';
 export async function GET() {
   try {
     await fs.mkdir(uploadsDirectory, { recursive: true });
-    const [entries, images] = await Promise.all([fs.readdir(uploadsDirectory, { withFileTypes: true }), prisma.profileImage.findMany({ select: { url: true } })]);
-    const referenced = new Set(images.map((item) => path.basename(item.url.split('?')[0])));
+    const [entries, images, profiles] = await Promise.all([
+      fs.readdir(uploadsDirectory, { withFileTypes: true }),
+      prisma.profileImage.findMany({ select: { url: true } }),
+      prisma.profile.findMany({ select: { avatarUrl: true, coverUrl: true } }),
+    ]);
+    // Gallery rows plus the avatar/cover columns older records still rely on.
+    const urls = [...images.map((item) => item.url), ...profiles.flatMap((item) => [item.avatarUrl, item.coverUrl || ''])];
+    const referenced = new Set(urls.filter(Boolean).map((url) => path.basename(url.split('?')[0])));
     const files = [];
     for (const entry of entries) {
       if (!entry.isFile() || entry.name === '.gitkeep' || referenced.has(entry.name)) continue;
@@ -25,9 +31,12 @@ export async function DELETE(request: NextRequest) {
       if (typeof filename !== 'string') continue;
       const target = safeUploadPath(filename);
       if (!target) continue;
-      const referenced = await prisma.profileImage.count({ where: { url: { contains: filename } } });
-      if (referenced === 0) { await fs.unlink(target).catch((error: any) => { if (error?.code !== 'ENOENT') throw error; }); deleted += 1; }
+      const [galleryRefs, profileRefs] = await Promise.all([
+        prisma.profileImage.count({ where: { url: { contains: filename } } }),
+        prisma.profile.count({ where: { OR: [{ avatarUrl: { contains: filename } }, { coverUrl: { contains: filename } }] } }),
+      ]);
+      if (galleryRefs + profileRefs === 0) { await fs.unlink(target).catch((error: any) => { if (error?.code !== 'ENOENT') throw error; }); deleted += 1; }
     }
     return NextResponse.json({ success: true, data: { deleted } });
-  } catch { return NextResponse.json({ success: false, error: 'Dosyalar silinemedi' }, { status: 500 }); }
+  } catch { return NextResponse.json({ success: false, error: 'The files could not be deleted' }, { status: 500 }); }
 }

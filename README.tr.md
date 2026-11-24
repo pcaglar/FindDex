@@ -220,3 +220,7 @@ Yerel Prisma komutlarını çalıştırmadan önce `.env.example` dosyasını `.
 ## Güvenlik
 
 FindDex güvenilir, tek kullanıcılı bir ortam için tasarlanmıştır ve çok kullanıcılı kimlik doğrulama içermez. İnternetten erişilebilir olacaksa ters proxy, VPN veya başka bir erişim kontrol katmanıyla koruyun.
+
+Sunucu uzak profil görsellerini indirdiği için loopback, özel ağ veya link-local adreslere (örneğin `http://192.168.1.10/…`, `http://localhost/…`) işaret eden URL'ler, yönlendirmeler dahil, reddedilir. Kendi ağınızdaki bir sunucudan bilerek görsel indirmek için `.env` içinde `ALLOW_PRIVATE_IMAGE_HOSTS=true` ayarlayın.
+
+Replace içe aktarmaları önce mevcut verinin JSON kopyasını yedekler klasörüne (`finddex-backup-…-before-import.json`) ve görsel içeren ZIP içe aktarmalarında mevcut yüklemelerin bir kopyasını `uploads-before-import-…` klasörüne kaydeder. Bu kopyalar otomatik silinmez.

@@ -5,6 +5,30 @@ import {
   MAX_IMAGE_BYTES,
   storeImageBuffer,
 } from '@/lib/imageStorage';
+import { assertPublicHost, PrivateHostError } from '@/lib/networkGuard';
+
+const MAX_REDIRECTS = 5;
+
+// Redirects are followed manually so every hop is checked against the network guard.
+async function fetchImage(start: URL) {
+  let current = start;
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+    if (!['http:', 'https:'].includes(current.protocol)) {
+      throw new ImageStorageError('INVALID_IMAGE_URL', 'Enter a valid HTTP or HTTPS image URL.', 400);
+    }
+    await assertPublicHost(current);
+    const response = await fetch(current, {
+      headers: { 'User-Agent': 'Mozilla/5.0 FindDex/1.0', Accept: 'image/jpeg,image/png,image/webp' },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(15_000),
+    });
+    const location = response.status >= 300 && response.status < 400 ? response.headers.get('location') : null;
+    if (!location) return response;
+    await response.body?.cancel();
+    current = new URL(location, current);
+  }
+  throw new ImageStorageError('IMAGE_DOWNLOAD_FAILED', 'The image URL redirected too many times.');
+}
 
 async function readImageBody(response: Response) {
   if (!response.body) {
@@ -39,11 +63,7 @@ export async function downloadAndStoreImage(url: string) {
   }
 
   try {
-    const response = await fetch(parsed, {
-      headers: { 'User-Agent': 'Mozilla/5.0 FindDex/1.0', Accept: 'image/jpeg,image/png,image/webp' },
-      redirect: 'follow',
-      signal: AbortSignal.timeout(15_000),
-    });
+    const response = await fetchImage(parsed);
     if (!response.ok) {
       throw new ImageStorageError('IMAGE_DOWNLOAD_FAILED', `The image could not be downloaded (${response.status}).`);
     }
@@ -62,6 +82,9 @@ export async function downloadAndStoreImage(url: string) {
     return stored.url;
   } catch (error) {
     if (error instanceof ImageStorageError) throw error;
+    if (error instanceof PrivateHostError) {
+      throw new ImageStorageError('INVALID_IMAGE_URL', 'Images on private or local network addresses cannot be downloaded.', 400);
+    }
     if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
       throw new ImageStorageError('IMAGE_DOWNLOAD_TIMEOUT', 'The image download timed out. Please try again.');
     }

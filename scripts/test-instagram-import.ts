@@ -10,6 +10,8 @@ async function main() {
   process.env.DATABASE_URL = `file:${path.join(directory, 'dev.db')}`;
   process.env.UPLOADS_DIR = path.join(directory, 'uploads');
   process.env.INSTAGRAM_SCRAPER_URL = 'http://scraper.test/scrape';
+  // Image hosts are mocked; skip real DNS lookups (the network guard has its own test).
+  process.env.ALLOW_PRIVATE_IMAGE_HOSTS = 'true';
   const originalFetch = globalThis.fetch;
   let disconnect: (() => Promise<void>) | undefined;
   let scrapeCalls = 0;

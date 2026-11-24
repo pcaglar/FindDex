@@ -4,8 +4,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     const { serverUrl, apiKey, language = 'en' } = await chrome.storage.local.get(['serverUrl', 'apiKey', 'language']);
     const text = language === 'tr' ? {
       setup: 'Önce FindDex adresini ve API anahtarını kaydedin.', invalidKey: 'API anahtarı geçersiz.', server: 'Sunucu hatası',
+      reasons: { SAME_USERNAME: 'Aynı kullanıcı adı', SAME_URL: "Aynı profil URL'si", SIMILAR_NAME: 'Benzer isim' },
     } : {
       setup: 'Save the FindDex address and API key first.', invalidKey: 'The API key is invalid.', server: 'Server error',
+      reasons: { SAME_USERNAME: 'Same username', SAME_URL: 'Same profile URL', SIMILAR_NAME: 'Similar name' },
     };
     if (!serverUrl || !apiKey) throw new Error(text.setup);
     const response = await fetch(`${serverUrl.replace(/\/+$/, '')}/api/external/profiles`, {
@@ -16,7 +18,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
       const duplicate = result.duplicates?.[0];
-      const detail = duplicate ? ` ${duplicate.displayName} (@${duplicate.username}): ${duplicate.reasons.join(', ')}` : '';
+      const detail = duplicate ? ` ${duplicate.displayName} (@${duplicate.username}): ${duplicate.reasons.map((reason) => text.reasons[reason] || reason).join(', ')}` : '';
       throw new Error(`${response.status === 401 ? text.invalidKey : result.error || `${text.server} (${response.status})`}${detail}`);
     }
     return result;

@@ -1,0 +1,7 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // Profile images are user-supplied files and arbitrary remote hosts, so next/image optimisation does not apply.
+    "@next/next/no-img-element": "off"
+  }
+}

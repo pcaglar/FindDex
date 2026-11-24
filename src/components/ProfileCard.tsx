@@ -20,6 +20,7 @@ import { PlatformIcon } from './PlatformIcon';
 import { getTagStyle, PLATFORM_INFO } from '@/lib/colors';
 import { ProfileLightbox } from './ProfileLightbox';
 import { useTranslation } from 'react-i18next';
+import { isWatchLaterCollection, WATCH_LATER_COLLECTION } from '@/lib/systemCollections';
 
 interface ProfileCardProps {
   profile: Profile;
@@ -67,7 +68,7 @@ export function ProfileCard({
   const primaryColor = primaryLink?.platformColor;
 
   const hasWebsite = profile.platformLinks.some((l) => l.platformKey === 'website') || Boolean(profile.websiteUrl);
-  const isSavedLater = profile.collections.some((c) => c.toLowerCase() === 'sonra bak');
+  const isSavedLater = profile.collections.some(isWatchLaterCollection);
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -256,9 +257,9 @@ export function ProfileCard({
               />
             </button>
 
-            {/* Bookmark / Sonra Bak toggle */}
+            {/* Bookmark / watch-later toggle */}
             <button
-              onClick={(e) => onToggleCollection(e, 'Sonra Bak')}
+              onClick={(e) => onToggleCollection(e, WATCH_LATER_COLLECTION)}
               className={`p-2.5 sm:p-2 rounded-xl transition flex items-center justify-center ${
                 isSavedLater
                   ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'

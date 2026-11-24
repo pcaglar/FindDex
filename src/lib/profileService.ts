@@ -1,9 +1,11 @@
+import type { Prisma } from '@prisma/client';
 import prisma from './prisma';
 import { Profile, PlatformItem, PlatformLinkItem, SortOption } from '@/types/profile';
 import fs from 'fs';
 import path from 'path';
 import { safeUploadPath } from './uploadStorage';
 import { getAppSettings } from './appSettings';
+import { isWatchLaterCollection, WATCH_LATER_ALIASES } from './systemCollections';
 
 export function formatProfile(p: any): Profile {
   const platformLinks: PlatformLinkItem[] = (p.platformLinks || []).map((pl: any) => ({
@@ -129,7 +131,7 @@ function buildProfileWhere(options: ProfileQueryOptions) {
       some: {
         collection: {
           name: {
-            in: ['Sonra Bak', 'sonra bak', 'Watch Later'],
+            in: WATCH_LATER_ALIASES,
           },
         },
       },
@@ -175,7 +177,9 @@ function buildProfileWhere(options: ProfileQueryOptions) {
   return where;
 }
 
-function buildProfileOrderBy(sort: SortOption = 'newest') {
+function buildProfileOrderBy(sort: SortOption = 'newest', includeDeleted = false) {
+  // Trash lists the most recently deleted profiles first.
+  if (includeDeleted) return { deletedAt: 'desc' as const };
   let orderBy: any = { createdAt: 'desc' };
   switch (sort) {
     case 'oldest':
@@ -220,7 +224,7 @@ const profileInclude = {
 
 export async function getProfiles(options: ProfileQueryOptions = {}): Promise<Profile[]> {
   const where = buildProfileWhere(options);
-  const orderBy = buildProfileOrderBy(options.sort);
+  const orderBy = buildProfileOrderBy(options.sort, options.includeDeleted);
 
   const rawProfiles = await prisma.profile.findMany({
     where,
@@ -233,7 +237,7 @@ export async function getProfiles(options: ProfileQueryOptions = {}): Promise<Pr
 
 export async function getProfilesPage(options: ProfileQueryOptions & { page: number; pageSize: number }) {
   const where = buildProfileWhere(options);
-  const orderBy = buildProfileOrderBy(options.sort);
+  const orderBy = buildProfileOrderBy(options.sort, options.includeDeleted);
   const page = Math.max(1, Math.floor(options.page));
   const pageSize = Math.max(1, Math.floor(options.pageSize));
   const [total, rawProfiles] = await prisma.$transaction([
@@ -282,6 +286,44 @@ export async function getProfileById(id: string): Promise<Profile | null> {
   return p ? formatProfile(p) : null;
 }
 
+type PlatformLinkInput = { platformId?: string; platformKey?: string; url: string; label?: string };
+type ProfileImageInput = { url: string; isCover?: boolean; sortOrder?: number };
+type TransactionClient = Prisma.TransactionClient;
+
+// SQLite is single-writer; profile writes touch many rows, so give them room.
+const WRITE_TRANSACTION = { maxWait: 10_000, timeout: 30_000 } as const;
+
+const uniqueNames = (values: unknown): string[] =>
+  Array.from(new Set((Array.isArray(values) ? values : []).map((value) => String(value ?? '').trim()).filter(Boolean)));
+
+async function resolvePlatformLinks(tx: TransactionClient, links: PlatformLinkInput[]) {
+  const resolved: { platformId: string; url: string; label: string | null }[] = [];
+  for (const link of links) {
+    const url = link.url?.trim();
+    if (!url) continue;
+    let platformId = link.platformId;
+    if (!platformId && link.platformKey) {
+      platformId = (await tx.platform.findUnique({ where: { key: link.platformKey } }))?.id;
+    }
+    if (platformId) resolved.push({ platformId, url, label: link.label || null });
+  }
+  return resolved;
+}
+
+async function connectTags(tx: TransactionClient, profileId: string, names: string[]) {
+  for (const name of names) {
+    const tag = await tx.tag.upsert({ where: { name }, update: {}, create: { name } });
+    await tx.profileTag.create({ data: { profileId, tagId: tag.id } });
+  }
+}
+
+async function connectCollections(tx: TransactionClient, profileId: string, names: string[]) {
+  for (const name of names) {
+    const collection = await tx.collection.upsert({ where: { name }, update: {}, create: { name } });
+    await tx.profileCollection.create({ data: { profileId, collectionId: collection.id } });
+  }
+}
+
 export async function createProfile(data: {
   username: string;
   displayName: string;
@@ -293,20 +335,16 @@ export async function createProfile(data: {
   isVerified?: boolean;
   tags?: string[];
   collections?: string[];
-  platformLinks?: {
-    platformId?: string;
-    platformKey?: string;
-    url: string;
-    label?: string;
-  }[];
-  images?: { url: string; isCover?: boolean; sortOrder?: number }[];
+  platformLinks?: PlatformLinkInput[];
+  images?: ProfileImageInput[];
   // legacy single platform link support
   platform?: string;
   profileUrl?: string;
   websiteUrl?: string;
 }): Promise<Profile> {
-  const tags = data.tags || [];
-  const collections = data.collections || [];
+  const tags = uniqueNames(data.tags);
+  const collections = uniqueNames(data.collections);
+  const avatarUrl = (data.avatarUrl || '').trim();
   const normalizedImages = (data.images || [])
     .filter((image) => image.url?.trim())
     .map((image, index) => ({
@@ -314,234 +352,146 @@ export async function createProfile(data: {
       isCover: Boolean(image.isCover),
       sortOrder: image.sortOrder ?? index,
     }));
-  if (!normalizedImages.length && data.avatarUrl?.trim()) {
-    normalizedImages.push({ url: data.avatarUrl.trim(), isCover: true, sortOrder: 0 });
+  if (!normalizedImages.length && avatarUrl) {
+    normalizedImages.push({ url: avatarUrl, isCover: true, sortOrder: 0 });
   }
   if (normalizedImages.length && !normalizedImages.some((image) => image.isCover)) normalizedImages[0].isCover = true;
-  const coverUrl = normalizedImages.find((image) => image.isCover)?.url || data.avatarUrl.trim();
+  const coverUrl = normalizedImages.find((image) => image.isCover)?.url || avatarUrl;
 
-  // Prepare platform links
-  const linksToCreate: { platformId: string; url: string; label?: string }[] = [];
-
-  if (Array.isArray(data.platformLinks) && data.platformLinks.length > 0) {
-    for (const l of data.platformLinks) {
-      if (!l.url) continue;
-      let platId = l.platformId;
-      if (!platId && l.platformKey) {
-        const plat = await prisma.platform.findUnique({ where: { key: l.platformKey } });
-        platId = plat?.id;
-      }
-      if (platId) {
-        linksToCreate.push({ platformId: platId, url: l.url, label: l.label });
-      }
+  // The profile and every relation are written atomically: a failure leaves nothing behind.
+  const profileId = await prisma.$transaction(async (tx) => {
+    let requestedLinks: PlatformLinkInput[] = [];
+    if (Array.isArray(data.platformLinks) && data.platformLinks.length > 0) {
+      requestedLinks = data.platformLinks;
+    } else if (data.platform || data.profileUrl) {
+      // Legacy fallback
+      if (data.profileUrl) requestedLinks.push({ platformKey: data.platform || 'instagram', url: data.profileUrl });
+      if (data.websiteUrl?.trim()) requestedLinks.push({ platformKey: 'website', url: data.websiteUrl.trim(), label: 'Website' });
     }
-  } else if (data.platform || data.profileUrl) {
-    // Legacy fallback
-    const key = data.platform || 'instagram';
-    const plat = await prisma.platform.findUnique({ where: { key } });
-    if (plat && data.profileUrl) {
-      linksToCreate.push({ platformId: plat.id, url: data.profileUrl });
-    }
-    if (data.websiteUrl && data.websiteUrl.trim()) {
-      const webPlat = await prisma.platform.findUnique({ where: { key: 'website' } });
-      if (webPlat) {
-        linksToCreate.push({ platformId: webPlat.id, url: data.websiteUrl.trim(), label: 'Website' });
-      }
-    }
-  }
+    const linksToCreate = await resolvePlatformLinks(tx, requestedLinks);
 
-  // Create profile
-  const profile = await prisma.profile.create({
-    data: {
-      username: data.username.replace(/^@/, '').trim(),
-      displayName: data.displayName.trim(),
-      avatarUrl: coverUrl,
-      coverUrl: data.coverUrl || null,
-      bio: data.bio || null,
-      notes: data.notes || null,
-      isFavorite: Boolean(data.isFavorite),
-      isVerified: Boolean(data.isVerified),
-      deletedAt: null,
-      platformLinks: {
-        create: linksToCreate,
-      },
-      images: { create: normalizedImages },
-      activityLogs: { create: { action: 'CREATED', detail: 'Profile created' } },
-    },
-  });
-
-  // Connect or create tags
-  for (const t of tags) {
-    if (!t.trim()) continue;
-    const tag = await prisma.tag.upsert({
-      where: { name: t.trim() },
-      update: {},
-      create: { name: t.trim() },
-    });
-    await prisma.profileTag.create({
+    const profile = await tx.profile.create({
       data: {
-        profileId: profile.id,
-        tagId: tag.id,
+        username: data.username.replace(/^@/, '').trim(),
+        displayName: data.displayName.trim(),
+        avatarUrl: coverUrl,
+        coverUrl: data.coverUrl || null,
+        bio: data.bio || null,
+        notes: data.notes || null,
+        isFavorite: Boolean(data.isFavorite),
+        isVerified: Boolean(data.isVerified),
+        deletedAt: null,
+        platformLinks: { create: linksToCreate },
+        images: { create: normalizedImages },
+        activityLogs: { create: { action: 'CREATED', detail: 'Profile created' } },
       },
     });
-  }
+    await connectTags(tx, profile.id, tags);
+    await connectCollections(tx, profile.id, collections);
+    return profile.id;
+  }, WRITE_TRANSACTION);
 
-  // Connect or create collections
-  for (const c of collections) {
-    if (!c.trim()) continue;
-    const col = await prisma.collection.upsert({
-      where: { name: c.trim() },
-      update: {},
-      create: { name: c.trim() },
-    });
-    await prisma.profileCollection.create({
-      data: {
-        profileId: profile.id,
-        collectionId: col.id,
-      },
-    });
-  }
-
-  return (await getProfileById(profile.id))!;
+  return (await getProfileById(profileId))!;
 }
 
 export async function updateProfile(id: string, patch: any): Promise<Profile | null> {
-  const existing = await prisma.profile.findUnique({
-    where: { id },
-    include: {
-      images: true,
-      tags: { include: { tag: true } },
-      collections: { include: { collection: true } },
-    },
-  });
-  if (!existing) return null;
-
-  const activity: { action: string; detail: string }[] = [];
   const compact = (value: unknown) => String(value ?? '').trim().slice(0, 500) || '—';
 
-  const dataToUpdate: any = {};
-  if (patch.username !== undefined) dataToUpdate.username = patch.username.replace(/^@/, '').trim();
-  if (patch.displayName !== undefined) dataToUpdate.displayName = patch.displayName.trim();
-  if (patch.avatarUrl !== undefined) dataToUpdate.avatarUrl = patch.avatarUrl.trim();
-  if (patch.coverUrl !== undefined) dataToUpdate.coverUrl = patch.coverUrl;
-  if (patch.bio !== undefined) dataToUpdate.bio = patch.bio;
-  if (patch.notes !== undefined) dataToUpdate.notes = patch.notes;
-  if (patch.isFavorite !== undefined) dataToUpdate.isFavorite = Boolean(patch.isFavorite);
-  if (patch.isVerified !== undefined) dataToUpdate.isVerified = Boolean(patch.isVerified);
-  if (patch.deletedAt !== undefined) dataToUpdate.deletedAt = patch.deletedAt;
-
-  if (patch.notes !== undefined && patch.notes !== existing.notes) {
-    activity.push({ action: 'NOTE_UPDATED', detail: `Note updated — before: ${compact(existing.notes)}, after: ${compact(patch.notes)}` });
-  }
-  if (patch.isFavorite !== undefined && Boolean(patch.isFavorite) !== existing.isFavorite) {
-    activity.push({
-      action: patch.isFavorite ? 'FAVORITED' : 'UNFAVORITED',
-      detail: patch.isFavorite ? 'Profile added to favorites' : 'Profile removed from favorites',
+  // All changes, including the activity log, commit together or not at all.
+  const result = await prisma.$transaction(async (tx) => {
+    const existing = await tx.profile.findUnique({
+      where: { id },
+      include: {
+        images: true,
+        tags: { include: { tag: true } },
+        collections: { include: { collection: true } },
+      },
     });
-  }
+    if (!existing) return null;
 
-  let removedImageUrls: string[] = [];
-  let normalizedImages: { url: string; isCover: boolean; sortOrder: number }[] | null = null;
-  if (Array.isArray(patch.images)) {
-    const nextImages: { url: string; isCover: boolean; sortOrder: number }[] = patch.images
-      .filter((image: any) => image.url?.trim())
-      .map((image: any, index: number) => ({ url: image.url.trim(), isCover: Boolean(image.isCover), sortOrder: index }));
-    if (nextImages.length && !nextImages.some((image) => image.isCover)) nextImages[0].isCover = true;
-    normalizedImages = nextImages;
-    const nextUrls = new Set(nextImages.map((image) => image.url));
-    removedImageUrls = existing.images.map((image) => image.url).filter((url) => !nextUrls.has(url));
-    dataToUpdate.avatarUrl = nextImages.find((image) => image.isCover)?.url || nextImages[0]?.url || patch.avatarUrl || existing.avatarUrl;
-  }
+    const activity: { action: string; detail: string }[] = [];
+    const dataToUpdate: any = {};
+    if (patch.username !== undefined) dataToUpdate.username = patch.username.replace(/^@/, '').trim();
+    if (patch.displayName !== undefined) dataToUpdate.displayName = patch.displayName.trim();
+    if (patch.avatarUrl !== undefined) dataToUpdate.avatarUrl = patch.avatarUrl.trim();
+    if (patch.coverUrl !== undefined) dataToUpdate.coverUrl = patch.coverUrl;
+    if (patch.bio !== undefined) dataToUpdate.bio = patch.bio;
+    if (patch.notes !== undefined) dataToUpdate.notes = patch.notes;
+    if (patch.isFavorite !== undefined) dataToUpdate.isFavorite = Boolean(patch.isFavorite);
+    if (patch.isVerified !== undefined) dataToUpdate.isVerified = Boolean(patch.isVerified);
+    if (patch.deletedAt !== undefined) dataToUpdate.deletedAt = patch.deletedAt;
 
-  await prisma.profile.update({
-    where: { id },
-    data: dataToUpdate,
-  });
-
-  if (normalizedImages) {
-    await prisma.profileImage.deleteMany({ where: { profileId: id } });
-    if (normalizedImages.length) {
-      await prisma.profileImage.createMany({ data: normalizedImages.map((image) => ({ ...image, profileId: id })) });
+    if (patch.notes !== undefined && patch.notes !== existing.notes) {
+      activity.push({ action: 'NOTE_UPDATED', detail: `Note updated — before: ${compact(existing.notes)}, after: ${compact(patch.notes)}` });
     }
-  }
-
-  // Update tags if provided
-  if (Array.isArray(patch.tags)) {
-    const previousTags = new Set(existing.tags.map((row) => row.tag.name));
-    const nextTags = new Set<string>(patch.tags.map((tag: string) => tag.trim()).filter(Boolean));
-    nextTags.forEach((tag) => { if (!previousTags.has(tag)) activity.push({ action: 'TAG_ADDED', detail: `Tag added: ${tag}` }); });
-    previousTags.forEach((tag) => { if (!nextTags.has(tag)) activity.push({ action: 'TAG_REMOVED', detail: `Tag removed: ${tag}` }); });
-    await prisma.profileTag.deleteMany({ where: { profileId: id } });
-    for (const t of patch.tags) {
-      if (!t.trim()) continue;
-      const tag = await prisma.tag.upsert({
-        where: { name: t.trim() },
-        update: {},
-        create: { name: t.trim() },
-      });
-      await prisma.profileTag.create({
-        data: {
-          profileId: id,
-          tagId: tag.id,
-        },
+    if (patch.isFavorite !== undefined && Boolean(patch.isFavorite) !== existing.isFavorite) {
+      activity.push({
+        action: patch.isFavorite ? 'FAVORITED' : 'UNFAVORITED',
+        detail: patch.isFavorite ? 'Profile added to favorites' : 'Profile removed from favorites',
       });
     }
-  }
 
-  // Update collections if provided
-  if (Array.isArray(patch.collections)) {
-    const previousCollections = new Set(existing.collections.map((row) => row.collection.name));
-    const nextCollections = new Set<string>(patch.collections.map((collection: string) => collection.trim()).filter(Boolean));
-    nextCollections.forEach((collection) => { if (!previousCollections.has(collection)) activity.push({ action: 'COLLECTION_ADDED', detail: `Added to collection: ${collection}` }); });
-    previousCollections.forEach((collection) => { if (!nextCollections.has(collection)) activity.push({ action: 'COLLECTION_REMOVED', detail: `Removed from collection: ${collection}` }); });
-    await prisma.profileCollection.deleteMany({ where: { profileId: id } });
-    for (const c of patch.collections) {
-      if (!c.trim()) continue;
-      const col = await prisma.collection.upsert({
-        where: { name: c.trim() },
-        update: {},
-        create: { name: c.trim() },
-      });
-      await prisma.profileCollection.create({
-        data: {
-          profileId: id,
-          collectionId: col.id,
-        },
-      });
+    let removedImageUrls: string[] = [];
+    let normalizedImages: { url: string; isCover: boolean; sortOrder: number }[] | null = null;
+    if (Array.isArray(patch.images)) {
+      const nextImages: { url: string; isCover: boolean; sortOrder: number }[] = patch.images
+        .filter((image: any) => image.url?.trim())
+        .map((image: any, index: number) => ({ url: image.url.trim(), isCover: Boolean(image.isCover), sortOrder: index }));
+      if (nextImages.length && !nextImages.some((image) => image.isCover)) nextImages[0].isCover = true;
+      normalizedImages = nextImages;
+      const nextUrls = new Set(nextImages.map((image) => image.url));
+      removedImageUrls = existing.images.map((image) => image.url).filter((url) => !nextUrls.has(url));
+      dataToUpdate.avatarUrl = nextImages.find((image) => image.isCover)?.url || nextImages[0]?.url || patch.avatarUrl || existing.avatarUrl;
     }
-  }
 
-  // Update platform links if provided
-  if (Array.isArray(patch.platformLinks)) {
-    await prisma.platformLink.deleteMany({ where: { profileId: id } });
-    for (const l of patch.platformLinks) {
-      if (!l.url) continue;
-      let platId = l.platformId;
-      if (!platId && l.platformKey) {
-        const plat = await prisma.platform.findUnique({ where: { key: l.platformKey } });
-        platId = plat?.id;
-      }
-      if (platId) {
-        await prisma.platformLink.create({
-          data: {
-            profileId: id,
-            platformId: platId,
-            url: l.url.trim(),
-            label: l.label || null,
-          },
-        });
+    await tx.profile.update({ where: { id }, data: dataToUpdate });
+
+    if (normalizedImages) {
+      await tx.profileImage.deleteMany({ where: { profileId: id } });
+      if (normalizedImages.length) {
+        await tx.profileImage.createMany({ data: normalizedImages.map((image) => ({ ...image, profileId: id })) });
       }
     }
-  }
 
-  const editableFields = ['username', 'displayName', 'avatarUrl', 'coverUrl', 'bio', 'isVerified', 'images', 'platformLinks'];
-  const hasGeneralEdit = editableFields.some((field) => patch[field] !== undefined) && activity.every((entry) => entry.action !== 'EDITED');
-  if (hasGeneralEdit) activity.push({ action: 'EDITED', detail: 'Profile details edited' });
-  if (activity.length) {
-    await prisma.activityLog.createMany({ data: activity.map((entry) => ({ ...entry, profileId: id })) });
-  }
+    if (Array.isArray(patch.tags)) {
+      const previousTags = new Set(existing.tags.map((row) => row.tag.name));
+      const nextTags = uniqueNames(patch.tags);
+      nextTags.forEach((tag) => { if (!previousTags.has(tag)) activity.push({ action: 'TAG_ADDED', detail: `Tag added: ${tag}` }); });
+      previousTags.forEach((tag) => { if (!nextTags.includes(tag)) activity.push({ action: 'TAG_REMOVED', detail: `Tag removed: ${tag}` }); });
+      await tx.profileTag.deleteMany({ where: { profileId: id } });
+      await connectTags(tx, id, nextTags);
+    }
 
-  for (const url of removedImageUrls) await deleteLocalUploadIfUnused(url);
+    if (Array.isArray(patch.collections)) {
+      const previousCollections = new Set(existing.collections.map((row) => row.collection.name));
+      const nextCollections = uniqueNames(patch.collections);
+      nextCollections.forEach((collection) => { if (!previousCollections.has(collection)) activity.push({ action: 'COLLECTION_ADDED', detail: `Added to collection: ${collection}` }); });
+      previousCollections.forEach((collection) => { if (!nextCollections.includes(collection)) activity.push({ action: 'COLLECTION_REMOVED', detail: `Removed from collection: ${collection}` }); });
+      await tx.profileCollection.deleteMany({ where: { profileId: id } });
+      await connectCollections(tx, id, nextCollections);
+    }
+
+    if (Array.isArray(patch.platformLinks)) {
+      const links = await resolvePlatformLinks(tx, patch.platformLinks);
+      await tx.platformLink.deleteMany({ where: { profileId: id } });
+      if (links.length) {
+        await tx.platformLink.createMany({ data: links.map((link) => ({ ...link, profileId: id })) });
+      }
+    }
+
+    const editableFields = ['username', 'displayName', 'avatarUrl', 'coverUrl', 'bio', 'isVerified', 'images', 'platformLinks'];
+    const hasGeneralEdit = editableFields.some((field) => patch[field] !== undefined) && activity.every((entry) => entry.action !== 'EDITED');
+    if (hasGeneralEdit) activity.push({ action: 'EDITED', detail: 'Profile details edited' });
+    if (activity.length) {
+      await tx.activityLog.createMany({ data: activity.map((entry) => ({ ...entry, profileId: id })) });
+    }
+
+    return { removedImageUrls };
+  }, WRITE_TRANSACTION);
+
+  if (!result) return null;
+  // Files are removed only after the database change has committed.
+  for (const url of result.removedImageUrls) await deleteLocalUploadIfUnused(url);
   return await getProfileById(id);
 }
 
@@ -549,8 +499,10 @@ async function deleteLocalUploadIfUnused(url: string) {
   const localPrefixes = ['/uploads/', '/api/uploads/'];
   const prefix = localPrefixes.find((candidate) => url.startsWith(candidate));
   if (!prefix) return;
-  const imageReference = await prisma.profileImage.count({ where: { url } });
-  const legacyReference = await prisma.profile.count({ where: { avatarUrl: url } });
+  const [imageReference, legacyReference] = await Promise.all([
+    prisma.profileImage.count({ where: { url } }),
+    prisma.profile.count({ where: { OR: [{ avatarUrl: url }, { coverUrl: url }] } }),
+  ]);
   if (imageReference || legacyReference) return;
   const filename = path.basename(url.slice(prefix.length));
   const filePath = safeUploadPath(filename);
@@ -599,7 +551,11 @@ export async function permanentlyDeleteProfile(id: string): Promise<boolean> {
     const profile = await prisma.profile.findUnique({ where: { id }, include: { images: true } });
     if (!profile) return false;
 
-    const localUrls = Array.from(new Set([...profile.images.map((image) => image.url), profile.avatarUrl]));
+    const localUrls = Array.from(new Set([
+      ...profile.images.map((image) => image.url),
+      profile.avatarUrl,
+      ...(profile.coverUrl ? [profile.coverUrl] : []),
+    ]));
     await prisma.profile.delete({ where: { id } });
     for (const url of localUrls) await deleteLocalUploadIfUnused(url);
     return true;
@@ -649,6 +605,8 @@ export async function getAllPlatforms(): Promise<PlatformItem[]> {
     orderBy: [{ isCustom: 'asc' }, { createdAt: 'asc' }],
     include: {
       links: {
+        // Trashed profiles do not count toward the visible archive.
+        where: { profile: { deletedAt: null } },
         select: {
           profileId: true,
         },
@@ -656,18 +614,16 @@ export async function getAllPlatforms(): Promise<PlatformItem[]> {
     },
   });
 
-  return platforms.map((p) => {
-    // Unique profile count for this platform
-    return {
-      id: p.id,
-      key: p.key,
-      name: p.name,
-      icon: p.icon,
-      color: p.color,
-      isCustom: p.isCustom,
-      count: p.links.length,
-    };
-  });
+  return platforms.map((p) => ({
+    id: p.id,
+    key: p.key,
+    name: p.name,
+    icon: p.icon,
+    color: p.color,
+    isCustom: p.isCustom,
+    // A profile with several links on one platform is still one profile.
+    count: new Set(p.links.map((link) => link.profileId)).size,
+  }));
 }
 
 export async function createCustomPlatform(data: {
@@ -720,7 +676,7 @@ export async function getStats() {
   const total = activeProfiles.length;
   const favorites = activeProfiles.filter((p) => p.isFavorite).length;
   const later = activeProfiles.filter((p) =>
-    p.collections.some((c) => c.collection.name.toLowerCase() === 'sonra bak')
+    p.collections.some((c) => isWatchLaterCollection(c.collection.name))
   ).length;
 
   const platformsData = await getAllPlatforms();

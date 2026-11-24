@@ -19,6 +19,7 @@ import { CollectionEditModal } from '@/components/CollectionEditModal';
 import { PaginationControls } from '@/components/PaginationControls';
 import { Plus, SearchX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { WATCH_LATER_COLLECTION } from '@/lib/systemCollections';
 
 interface SidebarStatsData {
   total: number;
@@ -35,6 +36,8 @@ export default function HomePage() {
   const { t } = useTranslation();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [trashedProfiles, setTrashedProfiles] = useState<Profile[]>([]);
+  const [trashPage, setTrashPage] = useState(1);
+  const [trashPagination, setTrashPagination] = useState({ page: 1, pageSize: 12, total: 0, totalPages: 1 });
   const [platforms, setPlatforms] = useState<PlatformItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<SidebarStatsData | null>(null);
@@ -216,15 +219,21 @@ export default function HomePage() {
   // Fetch trashed profiles
   const fetchTrash = useCallback(async () => {
     try {
-      const res = await fetch('/api/trash');
+      const res = await fetch(`/api/trash?page=${trashPage}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.success) {
+        // The last page can disappear after deletes or restores; step back to the new last page.
+        if (trashPage > data.pagination.totalPages) {
+          setTrashPage(data.pagination.totalPages);
+          return;
+        }
         setTrashedProfiles(data.data);
+        setTrashPagination(data.pagination);
       }
     } catch (err) {
       console.error('Failed to load trash:', err);
     }
-  }, []);
+  }, [trashPage]);
 
   // Fetch tags with IDs
   const fetchTags = useCallback(async () => {
@@ -262,8 +271,27 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchTrash();
+  }, [fetchTrash]);
+
+  useEffect(() => {
     refreshSidebarData();
-  }, [fetchTrash, refreshSidebarData]);
+  }, [refreshSidebarData]);
+
+  // Expired trash is purged explicitly (and nightly by the scheduler), never as a side effect of reading stats.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/maintenance/trash', { method: 'POST' })
+      .then((res) => res.json())
+      .then((result) => {
+        if (!cancelled && result?.success && result.data?.deleted > 0) {
+          void fetchTrash();
+          void refreshSidebarData();
+        }
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   // Sync selectedProfile
@@ -284,7 +312,7 @@ export default function HomePage() {
       setActiveCollection(null);
     } else if (navKey === 'later') {
       setCurrentTab('all');
-      setActiveCollection('Sonra Bak');
+      setActiveCollection(WATCH_LATER_COLLECTION);
       setActiveTag(null);
     } else if (navKey === 'trash') {
       fetchTrash();
@@ -466,7 +494,7 @@ export default function HomePage() {
       const data = await res.json();
       if (data.success) {
         setTrashedProfiles((prev) => prev.filter((p) => p.id !== id));
-        await refreshSidebarData();
+        await Promise.all([fetchTrash(), refreshSidebarData()]);
       }
     } catch (err) {
       console.error('Failed to permanently delete', err);
@@ -480,6 +508,8 @@ export default function HomePage() {
       const data = await res.json();
       if (data.success) {
         setTrashedProfiles([]);
+        setTrashPagination((current) => ({ ...current, page: 1, total: 0, totalPages: 1 }));
+        setTrashPage(1);
         await refreshSidebarData();
       }
     } catch (err) {
@@ -614,6 +644,11 @@ export default function HomePage() {
             /* Trash Can View */
             <TrashView
               trashedProfiles={trashedProfiles}
+              total={trashPagination.total}
+              page={trashPagination.page}
+              pageSize={trashPagination.pageSize}
+              totalPages={trashPagination.totalPages}
+              onPageChange={setTrashPage}
               onRestore={handleRestoreFromTrash}
               onPermanentDelete={handlePermanentDelete}
               onEmptyTrash={handleEmptyTrash}
