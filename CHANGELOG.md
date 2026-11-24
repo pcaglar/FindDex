@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- **Statistics and Settings did not open from the home page** (they opened in a new tab). A hook returned a new
+  `setSort` function on every render, so an effect re-ran forever and kept the page re-rendering, which starved
+  Next.js's page transition. The filter hook's functions now keep a stable identity. This also stops the saved
+  default sort from being re-applied after every render.
+- **The Chrome extension / Telegram import refused profiles that only shared a display name** with an existing one.
+  Only the same username or the same profile link blocks an import now; a similar name still shows as a warning in
+  the profile form.
+- Duplicate detection compared usernames with Turkish lowercasing, so `ATOMIC` never matched `atomic`. It now uses the
+  same folding as search.
+
 ## 0.3.0
 
 Adds one migration (`20261124000000_saved_filters`, a new empty table). Rolling back to 0.2.0 is safe: the older

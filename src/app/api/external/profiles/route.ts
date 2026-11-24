@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { authenticateExternalRequest, externalCorsHeaders } from '@/lib/externalApi';
-import { findDuplicateProfiles } from '@/lib/duplicateDetection';
+import { BLOCKING_DUPLICATE_REASONS, findDuplicateProfiles } from '@/lib/duplicateDetection';
 import { cleanupDownloadedImages, downloadAndStoreImage } from '@/lib/remoteImage';
 import { createProfile } from '@/lib/profileService';
 
@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
     const displayName = String(body.displayName || username).trim();
     const profileUrl = String(body.profileUrl || '').trim();
     if (!username || !profileUrl) return json({ success: false, error: 'Username and profile URL are required' }, 400);
-    const duplicates = await findDuplicateProfiles({ username, name: displayName, urls: [profileUrl] });
+    // Only the same username or the same profile link blocks an import; a similar display name alone must not.
+    const duplicates = await findDuplicateProfiles({ username, name: displayName, urls: [profileUrl], only: BLOCKING_DUPLICATE_REASONS });
     if (duplicates.length) return json({ success: false, error: 'This profile may already exist in FindDex.', duplicates }, 409);
     let localImageUrl = '';
     const selectedImageUrl = String(body.coverImageUrl || body.avatarUrl || '').trim();

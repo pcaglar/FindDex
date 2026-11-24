@@ -1,8 +1,11 @@
 import prisma from '@/lib/prisma';
+import { foldText } from '@/lib/textFold';
 
-const normalizeUsername = (value: string) => value.replace(/^@/, '').trim().toLocaleLowerCase('tr-TR');
-const normalizeUrl = (value: string) => value.trim().toLocaleLowerCase('tr-TR').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/[?#].*$/, '').replace(/\/+$/, '');
-const normalizeName = (value: string) => value.trim().toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+// toLocaleLowerCase('tr-TR') turns "I" into a dotless "ı", so "ATOMIC" would never equal "atomic".
+// foldText lowercases ASCII and folds Turkish/accented letters, the same rules search uses.
+const normalizeUsername = (value: string) => foldText(value.replace(/^@/, '').trim());
+const normalizeUrl = (value: string) => foldText(value.trim()).replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/[?#].*$/, '').replace(/\/+$/, '');
+const normalizeName = (value: string) => foldText(value.trim()).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 
 function levenshtein(left: string, right: string) {
   if (!left.length) return right.length;
@@ -20,7 +23,11 @@ function levenshtein(left: string, right: string) {
 // Reasons are language-neutral codes; clients translate them (profile.duplicateReason.*).
 export type DuplicateReason = 'SAME_USERNAME' | 'SAME_URL' | 'SIMILAR_NAME';
 
-export async function findDuplicateProfiles(input: { username?: string; name?: string; urls?: string[]; excludeId?: string | null }) {
+/** Reasons that mean "this is the same account"; a similar display name alone only deserves a warning. */
+export const BLOCKING_DUPLICATE_REASONS: DuplicateReason[] = ['SAME_USERNAME', 'SAME_URL'];
+
+/** `only` restricts the result to profiles matching at least one of those reasons (and lists only those reasons). */
+export async function findDuplicateProfiles(input: { username?: string; name?: string; urls?: string[]; excludeId?: string | null; only?: DuplicateReason[] }) {
   const username = normalizeUsername(input.username || '');
   const name = normalizeName(input.name || '');
   const urls = (input.urls || []).map(normalizeUrl).filter(Boolean);
@@ -33,6 +40,7 @@ export async function findDuplicateProfiles(input: { username?: string; name?: s
     if (urls.some((url) => profileUrls.includes(url))) reasons.push('SAME_URL');
     let score = 0;
     if (name.length >= 3) { score = 1 - levenshtein(name, normalizeName(profile.displayName)) / Math.max(name.length, normalizeName(profile.displayName).length); if (score >= 0.85) reasons.push('SIMILAR_NAME'); }
-    return reasons.length ? [{ id: profile.id, username: profile.username, displayName: profile.displayName, avatarUrl: profile.avatarUrl, deletedAt: profile.deletedAt?.toISOString() || null, reasons, similarity: score, platformLinks: profile.platformLinks.map((link) => ({ platformKey: link.platform.key, url: link.url })) }] : [];
+    const matched = input.only ? reasons.filter((reason) => input.only!.includes(reason)) : reasons;
+    return matched.length ? [{ id: profile.id, username: profile.username, displayName: profile.displayName, avatarUrl: profile.avatarUrl, deletedAt: profile.deletedAt?.toISOString() || null, reasons: matched, similarity: score, platformLinks: profile.platformLinks.map((link) => ({ platformKey: link.platform.key, url: link.url })) }] : [];
   }).slice(0, 5);
 }

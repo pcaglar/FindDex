@@ -86,6 +86,17 @@ async function main() {
     assert.deepEqual([...duplicates[0].reasons].sort(), ['SAME_URL', 'SAME_USERNAME', 'SIMILAR_NAME']);
     console.log('PASS: duplicate reasons are codes');
 
+    // The extension/bot import is only blocked by the same username or link, never by a similar name alone.
+    const { BLOCKING_DUPLICATE_REASONS } = await import('../src/lib/duplicateDetection');
+    const sameNameOnly = await findDuplicateProfiles({ username: 'someone_else', name: 'Atomicx', urls: ['https://www.instagram.com/someone_else/'], only: BLOCKING_DUPLICATE_REASONS });
+    assert.equal(sameNameOnly.length, 0, 'same display name with another username is not a blocking duplicate');
+    assert.equal((await findDuplicateProfiles({ username: 'someone_else', name: 'Atomicx', urls: ['https://www.instagram.com/someone_else/'] })).length, 1, 'the warning list still reports the similar name');
+    const sameUsername = await findDuplicateProfiles({ username: 'ATOMIC', name: 'Totally different', urls: [], only: BLOCKING_DUPLICATE_REASONS });
+    assert.deepEqual(sameUsername.map((item) => item.reasons), [['SAME_USERNAME']]);
+    const sameLink = await findDuplicateProfiles({ username: 'renamed', name: 'Totally different', urls: ['https://instagram.com/atomic'], only: BLOCKING_DUPLICATE_REASONS });
+    assert.deepEqual(sameLink.map((item) => item.reasons), [['SAME_URL']]);
+    console.log('PASS: only same username or link blocks external imports');
+
     // 5. API keys stay visible in the settings list (single-user, local install) ----------
     const keysRoute = await import('../src/app/api/settings/api-keys/route');
     const created = await (await keysRoute.POST(new NextRequest('http://localhost/api/settings/api-keys', { method: 'POST', body: JSON.stringify({ label: 'Test' }) }))).json();

@@ -56,6 +56,18 @@ export function useProfileFilters() {
     }));
   }, []);
 
+  // Every function returned here must keep a stable identity: callers list them as effect
+  // dependencies (page.tsx applies the saved defaults through setSort), and a new function on
+  // each render would re-run those effects forever.
+  const setSearch = useCallback((search: string) => patch({ search }), [patch]);
+  const setSort = useCallback((sort: SortOption) => patch({ sort }), [patch]);
+  const setTagMode = useCallback((tagMode: TagMode) => patch({ tagMode }), [patch]);
+  const clearTags = useCallback(() => patch({ tags: [] }), [patch]);
+  const clearCollection = useCallback(() => patch({ collection: null }), [patch]);
+  /** Clears every narrowing filter and the search; the sort order is kept. */
+  const clearAll = useCallback(() => setFilters((current) => ({ ...EMPTY_FILTERS, sort: current.sort })), []);
+  const applySaved = useCallback((saved: unknown) => { setView('archive'); setFilters(sanitizeFilters(saved)); }, []);
+
   return {
     filters,
     queryFilters,
@@ -68,13 +80,12 @@ export function useProfileFilters() {
     addTag,
     removeTag,
     toggleTag,
-    setSearch: (search: string) => patch({ search }),
-    setSort: (sort: SortOption) => patch({ sort }),
-    setTagMode: (tagMode: TagMode) => patch({ tagMode }),
-    clearTags: () => patch({ tags: [] }),
-    clearCollection: () => patch({ collection: null }),
-    /** Clears every narrowing filter and the search; the sort order is kept. */
-    clearAll: () => setFilters((current) => ({ ...EMPTY_FILTERS, sort: current.sort })),
-    applySaved: (saved: unknown) => { setView('archive'); setFilters(sanitizeFilters(saved)); },
+    setSearch,
+    setSort,
+    setTagMode,
+    clearTags,
+    clearCollection,
+    clearAll,
+    applySaved,
   };
 }
